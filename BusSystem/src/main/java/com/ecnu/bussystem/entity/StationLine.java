@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-// 存储线路信息
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

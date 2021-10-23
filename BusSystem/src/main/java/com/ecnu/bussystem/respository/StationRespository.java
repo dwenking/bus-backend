@@ -5,13 +5,11 @@ import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
 public interface StationRespository extends Neo4jRepository<Station,Long> {
-    @Query("MATCH (c:Station) WHERE c.stationid CONTAINS $id RETURN c")
+    @Query("MATCH (c:Station) WHERE $id IN c.idlist RETURN c")
     Station findStationById(String id);
 
-    @Query("MATCH (c:Station)-[r]->() WHERE r.name = $routeName RETURN c")
-    List<Station> findRouteByPerciseName(String routeName);
+    @Query("MATCH (c:Station) WHERE $stationName = c.name RETURN c")
+    Station findStationByName(String stationName);
 }

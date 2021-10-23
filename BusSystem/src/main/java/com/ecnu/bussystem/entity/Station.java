@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.neo4j.core.schema.*;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Set;
 
 @Data
@@ -14,19 +13,29 @@ import java.util.Set;
 @AllArgsConstructor
 @Node(labels = {"Station"})
 public class Station implements Serializable {
+    // Station属性名必须和数据库里的属性名完全一样，因为代码里用到了json类型转换
     @Id
     @GeneratedValue
-    private Long id; // 这个是系统生成的假id
+    private Long identity; // 系统生成的假id
 
     @Property(name = "name")
     private String name;
 
     @Property(name = "englishname")
-    private String englishName;
+    private String englishname;
 
-    @Property(name = "stationid")
-    private String stationId; // 真实使用的id
+    @Property(name = "type")
+    private String type; // Station类型，有bus，train，metro，normal四种
 
-    @Relationship(type = "NEAR", direction = Relationship.Direction.OUTGOING)
-    private Set<Station> nearStations = new HashSet<>();
+    @Property(name = "idlist")
+    private Set<String> idlist; // 真实使用的id
+
+    @Property(name = "begins")
+    private Set<String> begins;
+
+    @Property(name = "ends")
+    private Set<String> ends;
+
+    @Property(name = "lines")
+    private Set<String> lines;
 }

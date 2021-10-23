@@ -2,47 +2,63 @@ package com.ecnu.bussystem;
 
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
-import com.ecnu.bussystem.respository.StationRespository;
-import com.ecnu.bussystem.service.BusInfoService;
 import com.ecnu.bussystem.service.BusInfoServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.List;
-import java.util.Optional;
 
 @SpringBootTest
 class BusSystemApplicationTests {
-    @Autowired
-    StationRespository stationRespository;
-
     @Autowired
     BusInfoServiceImpl busInfoService;
 
     @Test
     void testFindStationById() {
-        Station station = stationRespository.findStationById("5425");
-        System.out.println(station.getName()+" "+ station.getStationId());
+        Station station = busInfoService.findStationById("5425");
+
+        System.out.println(station.getName() + " " + station.getEnglishname() + " " + station.getType());
     }
 
     @Test
     void testFindRouteByPerciseName() {
-        // 如果查询不存在的线路返回的List size = 0
-        List<Station> alongStations = stationRespository.findRouteByPerciseName("211路");
-        System.out.println(alongStations.size());
-        for (Station cur : alongStations) {
-            System.out.println((cur.getName())+ " " + cur.getStationId());
+        StationLine stationLine = busInfoService.findRouteByPerciseName("211路上行");
+
+        System.out.println("line: " + stationLine.getName());
+        List<Station> stations = stationLine.getStations();
+
+        // 注意空指针（有一些station的begins和ends是空）
+        for (Station cur : stations) {
+            System.out.println((cur.getName()) + " " + cur.getIdlist().size());
         }
     }
 
-    // 模糊查询
     @Test
-    void testFindRouteByName() {
-        List<StationLine> stationLines = busInfoService.findRouteByName("211路");
-        System.out.println(stationLines.size());
+    void testFindRouteByVagueName() {
+        List<StationLine> stationLines = busInfoService.findRouteByVagueName("211路");
+        System.out.println("size: " + stationLines.size());
+
         for (StationLine cur : stationLines) {
-            System.out.println((cur.getName())+ " " + cur.getStations().size());
+            System.out.println((cur.getName())+ ":");
+            List<Station> stations = cur.getStations();
+            for (Station station : stations) {
+                System.out.println(station.getName());
+            }
+        }
+    }
+
+    @Test
+    void testFindRelatedRoutesByStationName() {
+        List<StationLine> stationLines = busInfoService.findRelatedRoutesByStationName("灵龙大道北");
+        System.out.println("size: " + stationLines.size());
+
+        for (StationLine cur : stationLines) {
+            System.out.println((cur.getName())+ ":");
+            List<Station> stations = cur.getStations();
+            for (Station station : stations) {
+                System.out.println(station.getName());
+            }
         }
     }
 }

@@ -15,24 +15,43 @@ public class BusInfoController {
     @Autowired
     private BusInfoServiceImpl busInfoService;
 
-    @GetMapping(path = "/StationById")
+    // 根据站点id查找站点信息
+    @GetMapping(path = "/getStationById")
     public Station findStationById(
             @RequestParam(name = "id") String id
     ){
         return busInfoService.findStationById(id);
     }
 
-    @GetMapping(path = "/RouteByPerciseName")
+    // 根据站点name查找站点信息
+    @GetMapping(path = "/getStationByName")
+    public Station findStationByName(
+            @RequestParam(name = "name") String stationName
+    ){
+        return busInfoService.findStationByName(stationName);
+    }
+
+    // 根据线路精确名称查找线路（指明上行和下行）
+    @GetMapping(path = "/getRouteByPerciseName")
     public StationLine findRouteByPerciseName(
-            @RequestParam(name = "routeName") String routeName
+            @RequestParam(name = "name") String routeName
     ){
         return busInfoService.findRouteByPerciseName(routeName);
     }
 
-    @GetMapping(path = "/RouteByName")
-    public List<StationLine> findRouteByName(
-            @RequestParam(name = "routeName") String routeName
+    // 根据线路名称模糊查找线路（不指明上行和下行）
+    @GetMapping(path = "/getRouteByVagueName")
+    public List<StationLine> findRouteByVagueName(
+            @RequestParam(name = "name") String routeName
     ){
-        return busInfoService.findRouteByName(routeName);
+        return busInfoService.findRouteByVagueName(routeName);
+    }
+
+    // 根据站点名称查找经过该站点的线路
+    @GetMapping(path = "/getRelatedRoutesByStationName")
+    public List<StationLine> findRelatedRoutesByStationName(
+            @RequestParam(name = "name") String stationName
+    ){
+        return busInfoService.findRelatedRoutesByStationName(stationName);
     }
 }
