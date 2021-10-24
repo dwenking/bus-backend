@@ -65,8 +65,8 @@ class BusSystemApplicationTests {
     //判断两个站点之间是否存在直达路线并显示“路线名称-路径”
     @Test
     void testFindTwoStationDirectPathByName() {
-        String station1name = "燎原";
-        String station2name = "北门立交西";
+        String station1name = "金河市政府";
+        String station2name = "金河市政府";
         List<StationLine> stationLines = busInfoService.findTwoStationDirectPathByName(station1name, station2name);
         if (stationLines.size() == 0) {
             System.out.println("不存在直达线路");
