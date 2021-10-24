@@ -20,4 +20,13 @@ public interface BusInfoService {
 
     // 根据站点名称查找经过线路
     List<StationLine> findRelatedRoutesByStationName(String stationName);
+
+    //求两个站之间的直达的路径，返回“路线名称”
+    List<String> findTwoStationDirectRoutenameByName(String name1, String name2);
+
+    //求两个站之间的直达的路径，返回“路线名称-路径数组”
+    List<StationLine> findTwoStationDirectPathByName(String name1, String name2);
+
+    //求一条线路上两个站点的数组
+    List<StationLine> findTwoStationOnThisPathDirectPathByName(String routename, String name1, String name2);
 }
