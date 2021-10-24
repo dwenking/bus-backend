@@ -9,7 +9,17 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StationLine {
+public class StationLine implements Comparable{
     private String name;
     private List<Station> stations;
+
+    @Override
+    public int compareTo(Object o) {
+        StationLine stationLine=(StationLine) o;
+        if(this.getName().compareTo(stationLine.getName())>0)
+            return 1;
+        else  return -1;
+
+    }
+
 }

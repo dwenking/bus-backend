@@ -19,7 +19,7 @@ public class BusInfoController {
     @GetMapping(path = "/getStationById")
     public Station findStationById(
             @RequestParam(name = "id") String id
-    ){
+    ) {
         return busInfoService.findStationById(id);
     }
 
@@ -27,7 +27,7 @@ public class BusInfoController {
     @GetMapping(path = "/getStationByName")
     public Station findStationByName(
             @RequestParam(name = "name") String stationName
-    ){
+    ) {
         return busInfoService.findStationByName(stationName);
     }
 
@@ -35,7 +35,7 @@ public class BusInfoController {
     @GetMapping(path = "/getRouteByPerciseName")
     public StationLine findRouteByPerciseName(
             @RequestParam(name = "name") String routeName
-    ){
+    ) {
         return busInfoService.findRouteByPerciseName(routeName);
     }
 
@@ -43,7 +43,7 @@ public class BusInfoController {
     @GetMapping(path = "/getRouteByVagueName")
     public List<StationLine> findRouteByVagueName(
             @RequestParam(name = "name") String routeName
-    ){
+    ) {
         return busInfoService.findRouteByVagueName(routeName);
     }
 
@@ -51,7 +51,40 @@ public class BusInfoController {
     @GetMapping(path = "/getRelatedRoutesByStationName")
     public List<StationLine> findRelatedRoutesByStationName(
             @RequestParam(name = "name") String stationName
-    ){
+    ) {
         return busInfoService.findRelatedRoutesByStationName(stationName);
     }
+
+    // 根据两个站点名称查找是否存在直达路线，返回直达路线的名称
+    @GetMapping(path = "/getTwoStationDirectRoutenameByName")
+    public List<String> findTwoStationDirectRoutenameByName(
+            @RequestParam(name = "name1") String name1,
+            @RequestParam(name = "name2") String name2
+
+    ) {
+        return busInfoService.findTwoStationDirectRoutenameByName(name1, name2);
+    }
+
+    // 根据两个站点名称查找是否存在直达路线，返回直达路径
+    @GetMapping(path = "/getTwoStationDirectPathByName")
+    public List<StationLine> findTwoStationDirectPathByName(
+            @RequestParam(name = "name1") String name1,
+            @RequestParam(name = "name2") String name2
+
+    ) {
+        return busInfoService.findTwoStationDirectPathByName(name1, name2);
+    }
+
+    // 根据路线名称，两个站点名称查找这条路线上是否存在直达路线
+    @GetMapping(path = "/getTwoStationOnThisPathDirectPathByName")
+    public List<StationLine> findTwoStationOnThisPathDirectPathByName(
+            @RequestParam(name = "routename") String routename,
+            @RequestParam(name = "name1") String name1,
+            @RequestParam(name = "name2") String name2
+
+    ) {
+        return busInfoService.findTwoStationOnThisPathDirectPathByName(routename, name1, name2);
+    }
+
+
 }

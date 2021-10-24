@@ -11,13 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
-public class BusInfoServiceImpl implements BusInfoService{
+public class BusInfoServiceImpl implements BusInfoService {
     @Autowired
     StationRespository stationRespository;
 
@@ -42,7 +39,7 @@ public class BusInfoServiceImpl implements BusInfoService{
         stationLine.setName(routeName);
 
         try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("MATCH p=(s)-[r *.. {name:'%s'}]->(e) where '%s' in s.begins and '%s' in e.ends RETURN p", routeName, routeName, routeName);
+            String cypher = String.format("MATCH p=(s)-[r *.. {name:'%s'}]->(e) where '%s' in s.begins and '%s' in e.ends RETURN p order by length(p) desc", routeName, routeName, routeName);
             Result result = session.run(cypher);
 
             try {
@@ -110,5 +107,87 @@ public class BusInfoServiceImpl implements BusInfoService{
         }
 
         return stationLines;
+    }
+
+    //求两个站之间的直达的路径，返回“路线名称”
+    @Override
+    public List<String> findTwoStationDirectRoutenameByName(String name1, String name2) {
+        List<StationLine> directPath = new ArrayList<>(findTwoStationDirectPathByName(name1, name2));
+        Set<String> routeNameSet = new HashSet<>();
+        for (int i = 0; i < directPath.size(); i++) {
+            routeNameSet.add(directPath.get(i).getName());
+        }
+        List<String>stringList= new ArrayList<>(routeNameSet);
+        Collections.sort(stringList);
+        return stringList;
+    }
+
+    //求两个站之间的直达的路径，返回“路线名称-路径数组”
+    @Override
+    public List<StationLine> findTwoStationDirectPathByName(String name1, String name2) {
+        //找出两条路线中相同id的路线并判断是否可以直达
+        Set<StationLine> station1Lines = new HashSet(findRelatedRoutesByStationName(name1));
+        Set<StationLine> station2Lines = new HashSet(findRelatedRoutesByStationName(name2));
+        station1Lines.retainAll(station2Lines);//取交集
+
+        Set<StationLine> twoStationSameLines = station1Lines;//求两个站相同的路线
+        List<StationLine> directPath = new ArrayList<>();//用来存储结果：两条路线中的直达路径
+        if (name1.equals(name2)) {
+            return directPath;
+        }
+        //遍历这些相同的路线，求出合格的直达路线
+        for (StationLine obj : twoStationSameLines) {
+            List<Station> stationList = obj.getStations();
+            List<Station> thisDirectPath = new ArrayList<>();//存储这条路线的（两个站之间的）路径
+            //遍历这条路线中的站，并取station1name和station2name所在的站在这条路线上的indx位置，并两两匹配得到直达路径
+//            System.out.println(obj.getName());
+            List<Integer> station1IndxList = new ArrayList<>();
+            List<Integer> station2IndxList = new ArrayList<>();
+            for (int i = 0; i < stationList.size(); i++) {
+//                System.out.println(stationList.get(i).getName());
+                if (stationList.get(i).getName().equals(name1)) station1IndxList.add(i);
+                if (stationList.get(i).getName().equals(name2)) station2IndxList.add(i);
+            }
+
+            for (int i = 0; i < station1IndxList.size(); i++) {
+                for (int j = 0; j < station2IndxList.size(); j++) {
+                    int indx1 = station1IndxList.get(i);
+                    int indx2 = station2IndxList.get(j);
+                    if (indx1 < indx2) {
+                        thisDirectPath = new ArrayList<>(stationList.subList(indx1, indx2 + 1));
+                        directPath.add(new StationLine(obj.getName(), new ArrayList<>(thisDirectPath)));
+                    } else {
+                        thisDirectPath = new ArrayList<>(stationList.subList(indx2, indx1 + 1));
+                        directPath.add(new StationLine(obj.getName(), new ArrayList<>(thisDirectPath)));
+                    }
+                    thisDirectPath.clear();
+                }
+            }
+        }
+        Collections.sort(directPath);
+        return directPath;
+    }
+
+    @Override
+    public List<StationLine> findTwoStationOnThisPathDirectPathByName(String routename, String name1, String name2) {
+        List<StationLine> directPath = new ArrayList<>(findTwoStationDirectPathByName(name1, name2));
+        List<StationLine> routeList = new ArrayList<>();
+        String routename1, routename2;//模糊查询每个路线的上下行
+        if (routename.length() >= 2) {
+            String substring = routename.substring(routename.length() - 2, routename.length());
+            if (routename.length() >= 2 && (substring.equals("上行") || substring.equals("下行"))) {
+                routename = routename.substring(0, routename.length() - 2);
+            }
+        }
+        routename1 = routename + "上行";
+        routename2 = routename + "下行";
+        for (int i = 0; i < directPath.size(); i++) {
+            String thisRouteName = directPath.get(i).getName();
+            if (thisRouteName.equals(routename) || thisRouteName.equals(routename1) || thisRouteName.equals(routename2)) {
+                routeList.add(directPath.get(i));
+            }
+        }
+        Collections.sort(routeList);
+        return routeList;
     }
 }
