@@ -19,7 +19,6 @@ public class StationLine implements Comparable{
         if(this.getName().compareTo(stationLine.getName())>0)
             return 1;
         else  return -1;
-
     }
 
 }
