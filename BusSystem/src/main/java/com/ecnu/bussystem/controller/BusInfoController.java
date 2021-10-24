@@ -85,6 +85,4 @@ public class BusInfoController {
     ) {
         return busInfoService.findTwoStationOnThisPathDirectPathByName(routename, name1, name2);
     }
-
-
 }
