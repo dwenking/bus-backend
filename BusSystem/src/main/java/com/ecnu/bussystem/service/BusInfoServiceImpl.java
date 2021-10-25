@@ -109,7 +109,7 @@ public class BusInfoServiceImpl implements BusInfoService {
         return stationLines;
     }
 
-    //求两个站之间的直达的路径，返回“路线名称”
+    // 求两个站之间的直达的路径，返回“路线名称”
     @Override
     public List<String> findTwoStationDirectRoutenameByName(String name1, String name2) {
         List<StationLine> directPath = new ArrayList<>(findTwoStationDirectPathByName(name1, name2));
@@ -122,31 +122,37 @@ public class BusInfoServiceImpl implements BusInfoService {
         return stringList;
     }
 
-    //求两个站之间的直达的路径，返回“路线名称-路径数组”
+    // 求两个站之间的直达的路径，返回“路线名称-路径数组”
     @Override
     public List<StationLine> findTwoStationDirectPathByName(String name1, String name2) {
-        //找出两条路线中相同id的路线并判断是否可以直达
+        // 找出两条路线中相同id的路线并判断是否可以直达
         Set<StationLine> station1Lines = new HashSet(findRelatedRoutesByStationName(name1));
         Set<StationLine> station2Lines = new HashSet(findRelatedRoutesByStationName(name2));
-        station1Lines.retainAll(station2Lines);//取交集
+        station1Lines.retainAll(station2Lines); // 取交集
 
-        Set<StationLine> twoStationSameLines = station1Lines;//求两个站相同的路线
-        List<StationLine> directPath = new ArrayList<>();//用来存储结果：两条路线中的直达路径
+        Set<StationLine> twoStationSameLines = station1Lines; // 求两个站相同的路线
+        List<StationLine> directPath = new ArrayList<>(); // 用来存储结果：两条路线中的直达路径
+
         if (name1.equals(name2)) {
             return directPath;
         }
-        //遍历这些相同的路线，求出合格的直达路线
+
+        // 遍历这些相同的路线，求出合格的直达路线
         for (StationLine obj : twoStationSameLines) {
             List<Station> stationList = obj.getStations();
-            List<Station> thisDirectPath = new ArrayList<>();//存储这条路线的（两个站之间的）路径
+            List<Station> thisDirectPath; //存储这条路线的（两个站之间的）路径
+
             //遍历这条路线中的站，并取station1name和station2name所在的站在这条路线上的indx位置，并两两匹配得到直达路径
-//            System.out.println(obj.getName());
             List<Integer> station1IndxList = new ArrayList<>();
             List<Integer> station2IndxList = new ArrayList<>();
+
             for (int i = 0; i < stationList.size(); i++) {
-//                System.out.println(stationList.get(i).getName());
-                if (stationList.get(i).getName().equals(name1)) station1IndxList.add(i);
-                if (stationList.get(i).getName().equals(name2)) station2IndxList.add(i);
+                if (stationList.get(i).getName().equals(name1)) {
+                    station1IndxList.add(i);
+                }
+                if (stationList.get(i).getName().equals(name2)) {
+                    station2IndxList.add(i);
+                }
             }
 
             for (int i = 0; i < station1IndxList.size(); i++) {
@@ -172,15 +178,18 @@ public class BusInfoServiceImpl implements BusInfoService {
     public List<StationLine> findTwoStationOnThisPathDirectPathByName(String routename, String name1, String name2) {
         List<StationLine> directPath = new ArrayList<>(findTwoStationDirectPathByName(name1, name2));
         List<StationLine> routeList = new ArrayList<>();
-        String routename1, routename2;//模糊查询每个路线的上下行
+        String routename1, routename2; // 模糊查询每个路线的上下行
+
         if (routename.length() >= 2) {
             String substring = routename.substring(routename.length() - 2, routename.length());
             if (routename.length() >= 2 && (substring.equals("上行") || substring.equals("下行"))) {
                 routename = routename.substring(0, routename.length() - 2);
             }
         }
+
         routename1 = routename + "上行";
         routename2 = routename + "下行";
+
         for (int i = 0; i < directPath.size(); i++) {
             String thisRouteName = directPath.get(i).getName();
             if (thisRouteName.equals(routename) || thisRouteName.equals(routename1) || thisRouteName.equals(routename2)) {
