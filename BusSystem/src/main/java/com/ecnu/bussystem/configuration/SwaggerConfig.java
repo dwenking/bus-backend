@@ -35,4 +35,5 @@ public class SwaggerConfig {
                 new ArrayList());
     }
 }
+
 //测试运行：http://localhost:8080/swagger-ui.html
