@@ -2,10 +2,14 @@ package com.ecnu.bussystem;
 
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
+import com.ecnu.bussystem.entity.Timetable;
 import com.ecnu.bussystem.service.BusInfoServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 
@@ -13,6 +17,9 @@ import java.util.List;
 class BusSystemApplicationTests {
     @Autowired
     BusInfoServiceImpl busInfoService;
+
+    @Autowired
+    MongoTemplate mongoTemplate;
 
     @Test
     void testFindStationById() {
@@ -117,6 +124,17 @@ class BusSystemApplicationTests {
                 else System.out.println(stationList.get(j).getName());
             }
         }
+    }
 
+    @Test
+    void testMongoDB() {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("stationID").is("16560"));
+        query.addCriteria(Criteria.where("passTime").is("06:00"));
+
+        List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
+        for (Timetable timetable : find) {
+            System.out.println(timetable.getRouteName());
+        }
     }
 }

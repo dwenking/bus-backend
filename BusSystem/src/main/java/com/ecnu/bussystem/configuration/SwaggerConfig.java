@@ -17,9 +17,11 @@ public class SwaggerConfig {
     @Bean
     public Docket docket(){
         return  new Docket(DocumentationType.SWAGGER_2)
-//                .enable(false)//如果关闭swagger服务
+                // 如果关闭swagger服务
+                // .enable(false)
                 .apiInfo(apiInfo());
     }
+
     //配置Swagger信息 apiInfo类
     private ApiInfo apiInfo(){
         //作者信息

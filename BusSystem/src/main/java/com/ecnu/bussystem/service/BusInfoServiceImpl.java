@@ -8,6 +8,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,6 +21,9 @@ public class BusInfoServiceImpl implements BusInfoService {
 
     @Resource
     Driver neo4jDriver;
+
+    @Autowired
+    MongoTemplate mongoTemplate;
 
     @Override
     public Station findStationById(String Id) {
