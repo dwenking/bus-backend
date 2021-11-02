@@ -3,15 +3,17 @@ package com.ecnu.bussystem.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.neo4j.core.schema.*;
+import org.springframework.data.neo4j.core.schema.GeneratedValue;
+import org.springframework.data.neo4j.core.schema.Id;
+import org.springframework.data.neo4j.core.schema.Node;
+import org.springframework.data.neo4j.core.schema.Property;
 
 import java.io.Serializable;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Node(labels = {"Station"})
+@Node(labels = {"vStations"})
 public class Station implements Serializable {
     // Station属性名必须和数据库里的属性名完全一样，因为代码里用到了json类型转换
     @Id
@@ -27,15 +29,7 @@ public class Station implements Serializable {
     @Property(name = "type")
     private String type; // Station类型，有bus，train，metro，normal四种
 
-    @Property(name = "idlist")
-    private Set<String> idlist; // 真实使用的id
+    @Property(name = "myId")
+    private String myId; // 真实使用的id
 
-    @Property(name = "begins")
-    private Set<String> begins;
-
-    @Property(name = "ends")
-    private Set<String> ends;
-
-    @Property(name = "lines")
-    private Set<String> lines;
 }

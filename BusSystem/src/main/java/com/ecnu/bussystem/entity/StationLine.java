@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class StationLine implements Comparable{
     private String name;
+    private Boolean directional;
     private List<Station> stations;
 
     @Override
