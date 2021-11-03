@@ -16,5 +16,4 @@ public interface StationRepository extends Neo4jRepository<Station,Long> {
 
     @Query("MATCH (c:vStations) WHERE $stationName = c.name RETURN c")
     List<Station> findStationByName(String stationName);
-
 }

@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LineRepository extends Neo4jRepository<Line,Long> {
-    @Query("MATCH (c:vLines) WHERE $routeName = c.name RETURN c")
-    Line findRouteByPerciseName(String routeName);
+    @Query("MATCH (c:vLines) WHERE $name = c.name RETURN c")
+    Line findLineByPerciseName(String name);
 }

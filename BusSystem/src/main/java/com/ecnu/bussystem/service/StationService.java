@@ -1,8 +1,5 @@
 package com.ecnu.bussystem.service;
 
-
-
-
 import com.ecnu.bussystem.entity.Station;
 
 import java.util.List;
@@ -14,9 +11,9 @@ public interface StationService {
     // 根据站点name查找站点信息
     List<Station> findStationByPreciseName(String stationName);
 
-    // 根据站点的模糊name查找站点信息（所有的首发和终点站
+    // 根据站点的模糊name查找站点信息（所有的首发和终点站）
     List<Station> findStationByVagueName(String stationName);
 
-
-
+    // 根据站点模糊name查找经过站点的所有线路
+    List<Station> findLineOfStationByVagueName(String stationName);
 }

@@ -48,7 +48,7 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindRouteByPerciseName() {
-        StationLine stationLine = lineService.findStationlineByPreciseRouteName("1路上行");
+        StationLine stationLine = lineService.findStationOfLineByPreciseName("1路上行");
         System.out.println("line: " + stationLine.getName());
         List<Station> stations = stationLine.getStations();
         System.out.println(stationLine.getName() + " " + stationLine.getDirectional());
@@ -60,7 +60,7 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindRouteByVagueName() {
-        List<StationLine> stationLines = lineService.findStationlineByVagueRouteName("1路");
+        List<StationLine> stationLines = lineService.findStationOfLineByVagueName("1路");
         System.out.println("size: " + stationLines.size());
 
         for (StationLine cur : stationLines) {

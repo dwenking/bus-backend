@@ -1,8 +1,12 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.common.Neo4jUtil;
+import com.ecnu.bussystem.entity.Line;
+import com.ecnu.bussystem.entity.Name;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.respository.StationRepository;
-import org.neo4j.driver.Driver;
+import org.neo4j.driver.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,70 +34,90 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<Station> findStationByVagueName(String stationName) {
-        String stationname1;
-        String stationname2;
-        String stationname3;
-        if (stationName.length() >= 5 && (
-                stationName.substring(stationName.length() - 5).equals("(首发站)") || stationName.substring(stationName.length() - 5).equals("(终点站)"))) {
-            String substring = stationName.substring(0, stationName.length() - 5);
-            stationname1 = substring;
-            stationname2 = substring + "(首发站)";
-            stationname3 = substring + "(终点站)";
-
-        } else {
-            stationname1 = stationName;
-            stationname2 = stationName + "(首发站)";
-            stationname3 = stationName + "(终点站)";
-        }
-        List<Station> stationList1 = stationRepository.findStationByName(stationname1);
-        List<Station> stationList2 = stationRepository.findStationByName(stationname2);
-        List<Station> stationList3 = stationRepository.findStationByName(stationname3);
+        List<String> stations = getAllStationFromVagueName(stationName);
         List<Station> alllist = new ArrayList<>();
-        if(stationList1!=null)alllist.addAll(stationList1);
-        if(stationList1!=null)alllist.addAll(stationList3);
-        if(stationList1!=null)alllist.addAll(stationList2);
+
+        for (String station : stations) {
+            List<Station> stationList = stationRepository.findStationByName(station);
+            if(stationList != null) {
+                alllist.addAll(stationList);
+            }
+        }
         return alllist;
     }
 
-//    @Override
-//    public StationLine findRouteByPerciseName(String routeName) {
-//        StationLine stationLine = new StationLine();
-//        List<Station> stations = new ArrayList<>();
-//
-//
-//        stationLine.setName(routeName);
-//
-//        try (Session session = neo4jDriver.session()) {
-//            String cypher = String.format("MATCH p=(s)-[r *.. {name:'%s'}]->(e) where '%s' in s.begins and '%s' in e.ends RETURN p order by length(p) desc", routeName, routeName, routeName);
-//            Result result = session.run(cypher);
-//
-//            try {
-//                List<Record> records = result.list();
-//                Record record = null;
-//
-//                if (records != null) {
-//                    record = records.get(0);
-//                }
-//
-//                Value value = record.get("p");  // 因为是return p
-//                Path path = value.asPath();  // 返回的是路径类型，故使用.asPath()
-//
-//                // 得到node结果后，类型转换并加入line的station list
-//                for (Node node : path.nodes()) {
-//                    Map<String, Object> map = node.asMap();
-//                    String mapString = JSONObject.toJSONString(map);
-//                    Station station = JSONObject.parseObject(mapString, Station.class); //json字符串直接转给java对象
-//
-//                    stations.add(station);
-//                }
-//            } catch (Exception e) {
-//                System.out.println("没有找到Record, name:" + routeName);
-//            }
-//        }
-//        stationLine.setStations(stations);
-//
-//        return stationLine;
-//    }
+    @Override
+    public List<Station> findLineOfStationByVagueName(String stationName) {
+        List<Station> allList;
 
+        try (Session session = neo4jDriver.session()) {
+            // 找到stationName对应的id-node
+            String cypher = String.format("MATCH (m:vNames)-[]-(n:vStations) WHERE m.name='%s' RETURN n", stationName);
+            Result result = session.run(cypher);
 
+            List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+            allList = generateLineOfStationFromJson(session, mapStrings);
+
+            // 在name表里查询失败，改成在station里查询
+            if (mapStrings.size() == 0 || mapStrings == null) {
+                cypher = String.format("MATCH (n:vStations) WHERE n.name='%s' RETURN n", stationName);
+                result = session.run(cypher);
+
+                mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                allList = generateLineOfStationFromJson(session, mapStrings);
+            }
+        }
+        return allList;
+    }
+
+    private List<Station> generateLineOfStationFromJson(Session session, List<String> mapStrings) {
+        List<Station> alllist = new ArrayList<>();
+        String cypher;
+        Result result;
+
+        // 遍历每个station并找到对应line
+        for (String mapString : mapStrings) {
+            Station station = JSONObject.parseObject(mapString, Station.class);
+
+            // 根据id-node查找对应lines, 并存储在station的lines成员变量
+            cypher = String.format("MATCH (m:vStations)-[]-(n:vLines) WHERE m.myId='%s' RETURN COLLECT(n.name)", station.getMyId());
+            result = session.run(cypher);
+
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Value value = record.get("COLLECT(n.name)");
+                System.out.println("value: " + value);
+                // 类型转换
+                station.setLines((List<String>)(List)value.asList());
+            }
+
+            if (station.getLines() != null && !station.getLines().equals("")) {
+                alllist.add(station);
+            }
+        }
+        return alllist;
+    }
+
+    private List<String> getAllStationFromVagueName(String stationName) {
+        List<String> stations = new ArrayList<>();
+        String station1;
+        String station2;
+        String station3;
+
+        if (stationName.length() >= 5 && (
+                stationName.endsWith("(首发站)") || stationName.endsWith("(终点站)"))) {
+            String substring = stationName.substring(0, stationName.length() - 5);
+            station1 = substring;
+            station2 = substring + "(首发站)";
+            station3 = substring + "(终点站)";
+        } else {
+            station1 = stationName;
+            station2 = stationName + "(首发站)";
+            station3 = stationName + "(终点站)";
+        }
+        stations.add(station1);
+        stations.add(station2);
+        stations.add(station3);
+        return stations;
+    }
 }

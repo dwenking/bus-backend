@@ -17,9 +17,14 @@ public class StationLine implements Comparable{
     @Override
     public int compareTo(Object o) {
         StationLine stationLine=(StationLine) o;
-        if(this.getName().compareTo(stationLine.getName())>0)
+        if(this.getName().compareTo(stationLine.getName())>0) {
             return 1;
-        else  return -1;
+        } else {
+            return -1;
+        }
     }
 
+    public boolean isValid() {
+        return name != null && !name.equals("") && stations != null && stations.size() != 0;
+    }
 }

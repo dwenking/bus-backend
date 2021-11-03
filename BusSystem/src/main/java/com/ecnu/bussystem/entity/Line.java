@@ -1,5 +1,6 @@
 package com.ecnu.bussystem.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Node(labels = {"vLines"})
-public class Line implements Serializable,Comparable {
+public class Line implements Serializable, Comparable {
 
     @Id
     @GeneratedValue
@@ -50,8 +51,10 @@ public class Line implements Serializable,Comparable {
     @Override
     public int compareTo(Object o) {
         Line line=(Line) o;
-        if(this.getName().compareTo(line.getName())>0)
+        if(this.getName().compareTo(line.getName())>0) {
             return 1;
-        else  return -1;
+        } else {
+            return -1;
+        }
     }
 }

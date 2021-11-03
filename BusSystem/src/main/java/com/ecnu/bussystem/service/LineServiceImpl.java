@@ -1,6 +1,7 @@
 package com.ecnu.bussystem.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.common.Neo4jUtil;
 import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
@@ -29,139 +30,144 @@ public class LineServiceImpl implements LineService {
     MongoTemplate mongoTemplate;
 
     @Override
-    public Line findRouteByPerciseName(String routeName) {
-        return lineRepository.findRouteByPerciseName(routeName);
+    public Line findLineByPerciseName(String routeName) {
+        return lineRepository.findLineByPerciseName(routeName);
     }
 
     @Override
-    public List<Line> findRouteByVagueName(String routeName) {
-        if (routeName.length() >= 2) {
-            String substring = routeName.substring(routeName.length() - 2, routeName.length());
-            if (routeName.length() >= 2 && (substring.equals("上行") || substring.equals("下行"))) {
-                routeName = routeName.substring(0, routeName.length() - 2);
-            }
+    public List<Line> findLineByVagueName(String routeName) {
+        if (routeName == null || routeName.equals("")) {
+            return null;
         }
+
+        String regex = "^[a-z0-9A-Z]+$";
+        if (routeName.endsWith("上行") || routeName.endsWith("下行")) {
+            routeName = routeName.substring(0, routeName.length() - 2);
+        }
+        else if (routeName.matches(regex)){
+            routeName += "路";
+        }
+
         String routename1 = routeName + "上行";
         String routename2 = routeName + "下行";
-        Line line1 = lineRepository.findRouteByPerciseName(routename1);
-        Line line2 = lineRepository.findRouteByPerciseName(routename2);
+
+        Line line1 = lineRepository.findLineByPerciseName(routename1);
+        Line line2 = lineRepository.findLineByPerciseName(routename2);
         List<Line> lines = new ArrayList<>();
-        if (line1 != null) lines.add(line1);
-        if (line2 != null) lines.add(line2);
+
+        if (line1 != null) {
+            lines.add(line1);
+        }
+        if (line2 != null) {
+            lines.add(line2);
+        }
+
         return lines;
     }
 
-
     @Override
-    public StationLine findStationlineByPreciseRouteName(String routeName) {
+    public StationLine findStationOfLineByPreciseName(String routeName) {
+        if (routeName == null || routeName.equals("")) {
+            return null;
+        }
+
         StationLine stationLine = new StationLine();
-        List<Station> stations = new ArrayList<>();
         stationLine.setName(routeName);
+
+        List<Station> stations = new ArrayList<>();
         Station beginStation = null;
         Station endStation = null;
         Line lineNode = null;
-        //找到begin的node
+
         try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("MATCH (n:vStations)-[r]-(m:vLines) where type(r)='begin'and m.name='%s' return n", routeName);
+            // 找到begin的node
+            String cypher = String.format("MATCH (n:vStations)-[r]-(m:vLines) WHERE type(r)='begin' AND m.name='%s' RETURN n", routeName);
             Result result = session.run(cypher);
+
             try {
-                List<Record> records = result.list();
-                for (Record record : records) {
-                    Value value = record.get("n");
-                    Map<String, Object> map = value.asNode().asMap();
-                    String mapString = JSONObject.toJSONString(map);
-                    beginStation = JSONObject.parseObject(mapString, Station.class); //json字符串直接转给java对象
-                }
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                beginStation = JSONObject.parseObject(mapStrings.get(0), Station.class);
             } catch (Exception e) {
                 System.out.println("没有找到BeginNode, name:" + routeName);
+                return stationLine;
             }
-        }
-        //找到end的node
-        try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("MATCH (n:vStations)-[r]-(m:vLines) where type(r)='end'and m.name='%s' return n", routeName);
-            Result result = session.run(cypher);
+
+            // 找到end的node
+            cypher = String.format("MATCH (n:vStations)-[r]-(m:vLines) WHERE type(r)='end' AND m.name='%s' RETURN n", routeName);
+            result = session.run(cypher);
+
             try {
-                List<Record> records = result.list();
-                for (Record record : records) {
-                    Value value = record.get("n");
-                    Map<String, Object> map = value.asNode().asMap();
-                    String mapString = JSONObject.toJSONString(map);
-                    endStation = JSONObject.parseObject(mapString, Station.class); //json字符串直接转给java对象
-                }
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                endStation = JSONObject.parseObject(mapStrings.get(0), Station.class);
             } catch (Exception e) {
                 System.out.println("没有找到endNode, name:" + routeName);
+                return stationLine;
             }
-        }
-        //找到LineNode
-        try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("MATCH (n:vLines) where n.name='%s' return n", routeName);
-            Result result = session.run(cypher);
+
+            // 确定线路
+            cypher = String.format("MATCH (n:vLines) WHERE n.name='%s' RETURN n", routeName);
+            result = session.run(cypher);
+
             try {
-                List<Record> records = result.list();
-                for (Record record : records) {
-                    Value value = record.get("n");
-                    Map<String, Object> map = value.asNode().asMap();
-                    String mapString = JSONObject.toJSONString(map);
-                    lineNode = JSONObject.parseObject(mapString, Line.class); //json字符串直接转给java对象
-                }
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                lineNode = JSONObject.parseObject(mapStrings.get(0), Line.class);
             } catch (Exception e) {
                 System.out.println("没有找到lineNode, name:" + routeName);
+                return stationLine;
             }
-        }
-        if (beginStation == null || endStation == null || lineNode == null)
-            return null;
 
-        //根据begin和end找到路线
-        try (Session session = neo4jDriver.session()) {
+            //根据begin和end找路线
+            cypher = String.format("MATCH p=(s:vStations)-[r *.. {name:'%s'}]->(e:vStations) WHERE '%s' = s.myId AND '%s'= e.myId RETURN p ORDER BY length(p) DESC", routeName, beginStation.getMyId(), endStation.getMyId());
+            result = session.run(cypher);
 
-            String cypher = String.format("MATCH p=(s:vStations)-[r *.. {name:'%s'}]->(e:vStations) where '%s' =s.myId and '%s'=e.myId RETURN p order by length(p) desc", routeName, beginStation.getMyId(), endStation.getMyId());
-            Result result = session.run(cypher);
             try {
-                List<Record> records = result.list();
-                Record record = null;
-                if (records != null) {
-                    record = records.get(0);
-                }
-                assert record != null;
-                Value value = record.get("p");  // 因为是return p
-                Path path = value.asPath();  // 返回的是路径类型，故使用.asPath()
-                // 得到node结果后，类型转换并加入line的station list
-                for (Node node : path.nodes()) {
-                    Map<String, Object> map = node.asMap();
-                    String mapString = JSONObject.toJSONString(map);
-                    Station station = JSONObject.parseObject(mapString, Station.class); //json字符串直接转给java对象
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromPathResult(result);
+                for (String string : mapStrings) {
+                    Station station = JSONObject.parseObject(string, Station.class); //json字符串直接转给java对象
                     stations.add(station);
                 }
             } catch (Exception e) {
                 System.out.println("没有找到Record, name:" + routeName);
+                return stationLine;
             }
         }
+
         stationLine.setStations(stations);
-        assert lineNode != null;
         stationLine.setDirectional(lineNode.getDirectional());
         return stationLine;
     }
 
     @Override
-    public List<StationLine> findStationlineByVagueRouteName(String routeName) {
-        List<StationLine> stationLines = new ArrayList<>();
-        if (routeName.length() >= 2) {
-            String substring = routeName.substring(routeName.length() - 2, routeName.length());
-            if ((substring.equals("上行") || substring.equals("下行"))) {
-                routeName = routeName.substring(0, routeName.length() - 2);
-            }
+    public List<StationLine> findStationOfLineByVagueName(String routeName) {
+        if (routeName == null || routeName.equals("")) {
+            return null;
         }
 
-        System.out.println(routeName);
+        List<StationLine> stationLines = new ArrayList<>();
+        String regex = "^[a-z0-9A-Z]+$";
+        if (routeName.matches(regex)) {
+            routeName += "路";
+        }
+        else if (routeName.endsWith("上行") || routeName.endsWith("下行")) {
+            routeName = routeName.substring(0, routeName.length() - 2);
+        }
+
         String routename1 = routeName + "上行";
         String routename2 = routeName + "下行";
 
-        StationLine stationLine = this.findStationlineByPreciseRouteName(routeName);
-        StationLine stationLine1 = this.findStationlineByPreciseRouteName(routename1);
-        StationLine stationLine2 = this.findStationlineByPreciseRouteName(routename2);
-        if (stationLine1 != null) stationLines.add(stationLine1);
-        if (stationLine2 != null) stationLines.add(stationLine2);
-        if (stationLine != null) stationLines.add(stationLine);
+        StationLine stationLine = this.findStationOfLineByPreciseName(routeName);
+        StationLine stationLine1 = this.findStationOfLineByPreciseName(routename1);
+        StationLine stationLine2 = this.findStationOfLineByPreciseName(routename2);
+        if (stationLine1 != null && stationLine1.isValid()) {
+            stationLines.add(stationLine1);
+        }
+        if (stationLine2 != null && stationLine2.isValid()) {
+            stationLines.add(stationLine2);
+        }
+        if (stationLine != null && stationLine.isValid()) {
+            stationLines.add(stationLine);
+        }
+
         return stationLines;
     }
 }

@@ -6,10 +6,7 @@ import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.service.StationServiceImpl;
 import io.swagger.annotations.ApiModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -20,32 +17,38 @@ public class StationController {
     private StationServiceImpl stationService;
 
     // 根据站点id查找站点信息
-    @GetMapping(path = "/GET/myId")
+    @GetMapping(path = "/stationid/{id}")
     public JSONResult<?> findStationById(
-            @RequestParam(name = "id") String id
+            @PathVariable String id
     ) {
         Station station= stationService.findStationById(id);
+        if (station == null) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,id:" + id);
+        }
         return JSONResult.success(station);
     }
 
-    // 根据站点name查找站点信息
-    @GetMapping(path = "/GET/preciseName")
+    // 根据站点精确name查找站点信息
+    @GetMapping(path = "/percisestationname/{name}")
     public JSONResult<?> findStationByPreciseName(
-            @RequestParam(name = "name") String stationName
+            @PathVariable String name
     ) {
-        List<Station> stationlist= stationService.findStationByPreciseName(stationName);
-        return JSONResult.success(stationlist);
+        List<Station> stationList= stationService.findStationByPreciseName(name);
+        if (stationList == null || stationList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,name:" + name);
+        }
+        return JSONResult.success(stationList);
     }
 
-    // 根据站点name查找站点信息
-    @GetMapping(path = "/GET/vagueName")
+    // 根据站点模糊name查找站点信息
+    @GetMapping(path = "/vaguestationname/{name}")
     public JSONResult<?> findStationByVagueName(
-            @RequestParam(name = "name") String stationName
+            @PathVariable String name
     ) {
-        List<Station> stationlist= stationService.findStationByVagueName(stationName);
-        return JSONResult.success(stationlist);
+        List<Station> stationList= stationService.findStationByVagueName(name);
+        if (stationList == null || stationList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,name:" + name);
+        }
+        return JSONResult.success(stationList);
     }
-
-
-
 }
