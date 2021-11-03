@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/Line")
+@RequestMapping("/line")
 public class LineController {
     @Autowired
     private LineServiceImpl lineService;

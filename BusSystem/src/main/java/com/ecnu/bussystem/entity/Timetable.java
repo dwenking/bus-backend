@@ -20,4 +20,7 @@ public class Timetable {
     private String passTime;
     private String stationName;
     private String stationID;
+
+    // 当给定时间时，显示还有几分钟到达站点
+    private int minutes;
 }

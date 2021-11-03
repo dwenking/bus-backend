@@ -25,6 +25,6 @@ public class StationLine implements Comparable{
     }
 
     public boolean isValid() {
-        return name != null && !name.equals("") && stations != null && stations.size() != 0;
+        return (name != null) && (!name.equals("")) && (stations != null) && (stations.size() != 0);
     }
 }

@@ -5,6 +5,7 @@ import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.entity.Timetable;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import com.ecnu.bussystem.service.StationServiceImpl;
+import com.ecnu.bussystem.service.TimetableServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,8 +19,12 @@ import java.util.List;
 class BusSystemApplicationTests {
     @Autowired
     StationServiceImpl stationService;
+
     @Autowired
     LineServiceImpl lineService;
+
+    @Autowired
+    TimetableServiceImpl timetableService;
 
     @Autowired
     MongoTemplate mongoTemplate;
@@ -144,14 +149,7 @@ class BusSystemApplicationTests {
 //    }
 
     @Test
-    void testMongoDB() {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("stationID").is("16560"));
-        query.addCriteria(Criteria.where("passTime").is("06:00"));
-
-        List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
-        for (Timetable timetable : find) {
-            System.out.println(timetable.getRouteName());
-        }
+    void testDate() {
+        timetableService.findTimetableByIdAndTimeRange("06:00",10,"12345");
     }
 }

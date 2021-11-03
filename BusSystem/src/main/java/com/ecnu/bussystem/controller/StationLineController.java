@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/StationLine")
+@RequestMapping("/stationLine")
 public class StationLineController {
     @Autowired
     private LineServiceImpl lineService;
