@@ -1,6 +1,5 @@
 package com.ecnu.bussystem.respository;
 
-
 import com.ecnu.bussystem.entity.Station;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -16,4 +15,6 @@ public interface StationRepository extends Neo4jRepository<Station, Long> {
     @Query("MATCH (c:vStations) WHERE $stationName = c.name RETURN c")
     List<Station> findStationByName(String stationName);
 
+    @Query("match(n:vStations) where n.type=\"metro\" return distinct n.name")
+    List<String> findMetroStations();
 }
