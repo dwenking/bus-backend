@@ -3,13 +3,13 @@ package com.ecnu.bussystem.controller;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
-import com.ecnu.bussystem.service.LineService;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import com.ecnu.bussystem.service.StationServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/stationLine")
@@ -27,7 +27,7 @@ public class StationLineController {
     ) {
         StationLine line = lineService.findStationOfLineByPreciseName(name);
         if (!line.isValid()) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路站点数据,name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路站点数据,name:" + name);
         }
         return JSONResult.success(line);
     }
@@ -39,7 +39,7 @@ public class StationLineController {
     ) {
         List<StationLine> lines = lineService.findStationOfLineByVagueName(name);
         if (lines == null || lines.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路站点数据,name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路站点数据,name:" + name);
         }
         return JSONResult.success(lines);
     }
@@ -51,7 +51,20 @@ public class StationLineController {
     ) {
         List<Station> stations = stationService.findLineOfStationByVagueName(name);
         if (stations == null || stations.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到站点线路数据,name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到站点线路数据,name:" + name);
+        }
+        return JSONResult.success(stations);
+    }
+
+    // 找出两个线路的重复站点名并统计数量
+    @GetMapping(path = "/duplicatestationsoflines/{name1}{name2}")
+    public JSONResult<?> findDuplicateStations(
+            @RequestParam("name1") String lineName1,
+            @RequestParam("name2") String lineName2
+    ) {
+        List<Map<String, String>> stations = lineService.findDuplicateStations(lineName1, lineName2);
+        if (stations == null || stations.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + lineName1 + "name2" + lineName2);
         }
         return JSONResult.success(stations);
     }

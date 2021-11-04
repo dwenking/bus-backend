@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/station")
@@ -50,5 +51,14 @@ public class StationController {
             return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,name:" + name);
         }
         return JSONResult.success(stationList);
+    }
+
+    @GetMapping(path = "/top15stationpairs")
+    public JSONResult<?> findTop15StationPairs(){
+        List<Map<String,String>> mapList=stationService.findTop15StationPairs();
+        if (mapList == null || mapList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到数据");
+        }
+        return JSONResult.success(mapList);
     }
 }
