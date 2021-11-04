@@ -1,8 +1,10 @@
 package com.ecnu.bussystem.service;
 
 import com.ecnu.bussystem.entity.Station;
-import com.ecnu.bussystem.entity.StationTimetable;
-import com.ecnu.bussystem.entity.Timetable;
+import com.ecnu.bussystem.entity.StationLine;
+import com.ecnu.bussystem.entity.timetable.LineTimetable;
+import com.ecnu.bussystem.entity.timetable.StationTimetable;
+import com.ecnu.bussystem.entity.timetable.Timetable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -11,9 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class TimetableServiceImpl implements TimetableService{
@@ -22,6 +22,9 @@ public class TimetableServiceImpl implements TimetableService{
 
     @Autowired
     StationServiceImpl stationService;
+
+    @Autowired
+    LineServiceImpl lineService;
 
     @Override
     public StationTimetable findTimetableByIdAndTime(String time, String stationId, String lineName, String count) {
@@ -59,7 +62,7 @@ public class TimetableServiceImpl implements TimetableService{
             return null;
         }
 
-        StationTimetable stationTimetable = new StationTimetable(find.get(0).getStationName(), find);
+        StationTimetable stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
 
         return stationTimetable;
     }
@@ -113,7 +116,7 @@ public class TimetableServiceImpl implements TimetableService{
                 timetable.setMinutes(minutes);
             }
 
-            stationTimetable = new StationTimetable(find.get(0).getStationName(), find);
+            stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
         } catch (Exception e) {
             return null;
         }
@@ -136,5 +139,90 @@ public class TimetableServiceImpl implements TimetableService{
             }
         }
         return stationTimetables;
+    }
+
+    @Override
+    public LineTimetable findTimetableByName(String lineName) {
+        if (lineName == null) {
+            return null;
+        }
+
+        LineTimetable lineTimetable = new LineTimetable();
+        List<StationTimetable> stationTimetables = new ArrayList<>();
+
+        if (!lineName.endsWith("路")) {
+            lineName += "路";
+        }
+
+        Query query = new Query();
+        query.addCriteria(Criteria.where("routeName").is(lineName));
+        query.with(Sort.by(Sort.Direction.ASC,"stationID"));
+        query.with(Sort.by(Sort.Direction.ASC,"passTime"));
+        List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
+        if (find == null || find.size() == 0) {
+            return null;
+        }
+
+        // 用一个hash表记录当前处理了哪些station
+        Set<String> station = new HashSet<>();
+        int stationCount = 0;
+
+        for (Timetable timetable : find) {
+            String stationID = timetable.getStationID();
+            String stationName = timetable.getStationName();
+
+            // 没有这个站则进行初始化
+            if (!station.contains(stationID)) {
+                stationCount++;
+                station.add(stationID);
+                StationTimetable stationTimetable = new StationTimetable();
+
+                stationTimetable.setStation(stationName);
+                stationTimetable.setId(stationID);
+
+                List<Timetable> timetables = new ArrayList<>();
+                timetables.add(timetable);
+                stationTimetable.setTimetables(timetables);
+
+                stationTimetables.add(stationTimetable);
+            }
+            // 存在这个站，则从stationTimetables里取出这个站进行更新
+            else {
+                StationTimetable stationTimetable = stationTimetables.get(stationCount - 1);
+
+                List<Timetable> timetables = stationTimetable.getTimetables();
+                timetables.add(timetable);
+                stationTimetable.setTimetables(timetables);
+            }
+        }
+
+        // station之间的顺序还没有确定
+        StationLine stationLine = lineService.findStationOfLineByPreciseName(lineName);
+        List<Station> list = stationLine.getStations();
+        if (list.size() != stationCount) {
+            return null;
+        }
+
+        // 存储该station在线路上的顺序
+        Map<String, Integer> stationMap = new HashMap<>();
+
+        for (int i = 0; i < stationCount;i++) {
+            stationMap.put(list.get(i).getMyId(), i);
+        }
+
+        // 存储每个station中timetable的count值和index
+        for (StationTimetable stationTimetable : stationTimetables) {
+            stationTimetable.setTimetableCount(stationTimetable.getTimetables().size());
+            stationTimetable.setStationIndex(stationMap.get(stationTimetable.getId()));
+        }
+
+        // 根据index排序
+        Collections.sort(stationTimetables);
+
+        lineTimetable.setLine(lineName);
+        lineTimetable.setStationCount(stationCount);
+        lineTimetable.setTimetables(stationTimetables);
+
+        return lineTimetable;
     }
 }

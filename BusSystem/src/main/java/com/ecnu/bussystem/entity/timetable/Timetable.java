@@ -1,4 +1,4 @@
-package com.ecnu.bussystem.entity;
+package com.ecnu.bussystem.entity.timetable;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import lombok.AllArgsConstructor;

@@ -1,8 +1,8 @@
 package com.ecnu.bussystem.controller;
 
 import com.ecnu.bussystem.common.JSONResult;
-import com.ecnu.bussystem.entity.StationTimetable;
-import com.ecnu.bussystem.entity.Timetable;
+import com.ecnu.bussystem.entity.timetable.LineTimetable;
+import com.ecnu.bussystem.entity.timetable.StationTimetable;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -74,5 +74,17 @@ public class TimetableController {
             return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，站点name:" + name + " 时间：" + time);
         }
         return JSONResult.success(stationTimetables);
+    }
+
+    // 指定线路名，返回班次信息（仅支持精确名称查找）
+    @GetMapping(path = "/timetableforline/{name}")
+    public JSONResult<?> findTimetableByName(
+            @PathVariable String name
+    ) {
+        LineTimetable lineTimetable = timetableService.findTimetableByName(name);
+        if (!lineTimetable.isValid()) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，线路name:" + name);
+        }
+        return JSONResult.success(lineTimetable);
     }
 }

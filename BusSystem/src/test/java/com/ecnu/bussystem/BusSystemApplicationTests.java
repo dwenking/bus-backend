@@ -2,7 +2,6 @@ package com.ecnu.bussystem;
 
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
-import com.ecnu.bussystem.entity.Timetable;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import com.ecnu.bussystem.service.StationServiceImpl;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
@@ -10,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 
