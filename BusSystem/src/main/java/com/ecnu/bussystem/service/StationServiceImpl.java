@@ -2,8 +2,6 @@ package com.ecnu.bussystem.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.Neo4jUtil;
-import com.ecnu.bussystem.entity.Line;
-import com.ecnu.bussystem.entity.Name;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.respository.StationRepository;
 import org.neo4j.driver.*;
@@ -12,7 +10,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StationServiceImpl implements StationService {
@@ -39,7 +39,7 @@ public class StationServiceImpl implements StationService {
 
         for (String station : stations) {
             List<Station> stationList = stationRepository.findStationByName(station);
-            if(stationList != null) {
+            if (stationList != null) {
                 alllist.addAll(stationList);
             }
         }
@@ -70,6 +70,7 @@ public class StationServiceImpl implements StationService {
         return allList;
     }
 
+
     private List<Station> generateLineOfStationFromJson(Session session, List<String> mapStrings) {
         List<Station> alllist = new ArrayList<>();
         String cypher;
@@ -87,8 +88,9 @@ public class StationServiceImpl implements StationService {
             for (Record record : records) {
                 Value value = record.get("COLLECT(n.name)");
                 System.out.println("value: " + value);
+
                 // 类型转换
-                station.setLines((List<String>)(List)value.asList());
+                station.setLines((List<String>) (List) value.asList());
             }
 
             if (station.getLines() != null && !station.getLines().equals("")) {
@@ -98,7 +100,8 @@ public class StationServiceImpl implements StationService {
         return alllist;
     }
 
-    private List<String> getAllStationFromVagueName(String stationName) {
+    @Override
+    public List<String> getAllStationFromVagueName(String stationName) {
         List<String> stations = new ArrayList<>();
         String station1;
         String station2;
@@ -120,4 +123,31 @@ public class StationServiceImpl implements StationService {
         stations.add(station3);
         return stations;
     }
+
+    //找到两个相邻站之间路径最多的两个站及数量
+    @Override
+    public List<Map<String, String>> findTop15StationPairs() {
+        List<Map<String, String>> mapList = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            // 找到 start-end-count对应
+            String cypher = String.format("MATCH (n:Station)-[r]->(m:Station) " +
+                    "with n.name as start, m.name as end,count(r) as number order by number DESC limit 15 return start,end,number");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                //System.out.println(record);
+                //将records映射为map对象
+                Map<String, Object> objectMap = record.asMap();
+                //System.out.println(record.asMap());
+                Map<String, String> map = new HashMap<>();
+                for (String cur : objectMap.keySet()) {
+                    map.put(cur, objectMap.get(cur).toString());
+                }
+                mapList.add(map);
+            }
+        }
+
+        return mapList;
+    }
+
 }
