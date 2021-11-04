@@ -2,7 +2,6 @@ package com.ecnu.bussystem;
 
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
-import com.ecnu.bussystem.entity.Timetable;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import com.ecnu.bussystem.service.StationServiceImpl;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
@@ -10,8 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -49,6 +46,55 @@ class BusSystemApplicationTests {
         List<Station> stations = stationService.findStationByPreciseName("金河客运站(终点站)");
         for (Station station : stations) {
             System.out.println(station.getName() + " " + station.getMyId());
+        }
+    }
+
+    @Test
+    void testfindTop15LineNumberofStations(){
+        List<Map<String,Object>> anslist=stationService.findTop15LineNumberofStations();
+        if(anslist==null || anslist.size()==0) {
+            System.out.println("不存在");
+            return;
+        }
+        for(int i=0;i<anslist.size();i++){
+            System.out.println(anslist.get(i));
+        }
+    }
+
+    @Test
+    void testfindDirectPathBetweenTwoStations(){
+        String name1="航天立交东";
+        String name2="生态公园";
+        List<StationLine> stationLines=lineService.findDirectPathBetweenTwoStations(name1,name2);
+        if(stationLines==null ||stationLines.size()==0){
+            System.out.println("不存在直达线路");
+            return;
+        }
+        for(StationLine stationLine: stationLines){
+            System.out.println("直达线路："+stationLine.getName()+":");
+            if(stationLine.getDirectional()) System.out.println(name1+"->"+name2);
+            if(!stationLine.getDirectional()) System.out.println(name2+"->"+name1);
+            List<Station>stationList=stationLine.getStations();
+            for(Station station:stationList)
+                System.out.println(station);
+        }
+    }
+
+    @Test
+    void testfindAlongStationLineByStartAndEndName() {
+        List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("画展中心", "金河客运站", "1路");
+        if (stationLines == null) {
+            System.out.println("不存在路线");
+            return;
+        }
+        System.out.println("size: " + stationLines.size());
+        for (StationLine cur : stationLines) {
+            System.out.println((cur.getName()) + ":");
+            System.out.println("time:" + cur.getTime());
+            List<Station> stations = cur.getStations();
+            for (Station station : stations) {
+                System.out.println(station.getName() + " " + station.getMyId());
+            }
         }
     }
 

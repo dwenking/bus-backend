@@ -23,4 +23,9 @@ public interface StationService {
     //找到两个站之间直达线路最多的两个站及线路数量
     List<Map<String, String>> findTop15StationPairs();
 
+    //根据id分组返回线路最多的15个站点
+    List<Map<String,Object>> findTop15LineNumberofStations();
+
+    //查询地铁站的数量
+    List<String> findNumberOfMetroStations();
 }

@@ -17,9 +17,9 @@ public class Neo4jUtil {
         List<Record> records = result.list();
         List<String> mapStrings = new ArrayList<>();
 
-        for (Record record : records) {
-            Value value = record.get("n");
+        for (Record record : records) {Value value = record.get("n");
             Map<String, Object> map = value.asNode().asMap();
+
             String mapString = JSONObject.toJSONString(map);
             if (mapString != null && !mapString.equals("")) {
                 mapStrings.add(mapString);
