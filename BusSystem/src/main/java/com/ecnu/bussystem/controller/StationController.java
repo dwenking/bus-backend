@@ -1,6 +1,7 @@
 package com.ecnu.bussystem.controller;
 
 
+import com.alibaba.fastjson.JSON;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.service.StationServiceImpl;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/Station")
@@ -21,9 +23,9 @@ public class StationController {
     public JSONResult<?> findStationById(
             @PathVariable String id
     ) {
-        Station station= stationService.findStationById(id);
+        Station station = stationService.findStationById(id);
         if (station == null) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,id:" + id);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路数据,id:" + id);
         }
         return JSONResult.success(station);
     }
@@ -33,9 +35,9 @@ public class StationController {
     public JSONResult<?> findStationByPreciseName(
             @PathVariable String name
     ) {
-        List<Station> stationList= stationService.findStationByPreciseName(name);
+        List<Station> stationList = stationService.findStationByPreciseName(name);
         if (stationList == null || stationList.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路数据,name:" + name);
         }
         return JSONResult.success(stationList);
     }
@@ -45,10 +47,27 @@ public class StationController {
     public JSONResult<?> findStationByVagueName(
             @PathVariable String name
     ) {
-        List<Station> stationList= stationService.findStationByVagueName(name);
+        List<Station> stationList = stationService.findStationByVagueName(name);
         if (stationList == null || stationList.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到线路数据,name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路数据,name:" + name);
         }
         return JSONResult.success(stationList);
+    }
+
+    @GetMapping(path = "/findtop15linenumberofstations")
+    public JSONResult<?> findTop15LineNumberofStations() {
+        List<Map<String, Object>> mapList = stationService.findTop15LineNumberofStations();
+        if (mapList == null || mapList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(mapList);
+    }
+
+    @GetMapping(path = "/findnumberofmetrostations")
+    public JSONResult<?> findNumberOfMetroStations() {
+        List<String> stringList = stationService.findNumberOfMetroStations();
+        if (stringList == null || stringList.size() == 0)
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        return JSONResult.success(stringList);
     }
 }

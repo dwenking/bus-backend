@@ -11,8 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.swing.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StationServiceImpl implements StationService {
@@ -39,7 +42,7 @@ public class StationServiceImpl implements StationService {
 
         for (String station : stations) {
             List<Station> stationList = stationRepository.findStationByName(station);
-            if(stationList != null) {
+            if (stationList != null) {
                 alllist.addAll(stationList);
             }
         }
@@ -88,7 +91,7 @@ public class StationServiceImpl implements StationService {
                 Value value = record.get("COLLECT(n.name)");
                 System.out.println("value: " + value);
                 // 类型转换
-                station.setLines((List<String>)(List)value.asList());
+                station.setLines((List<String>) (List) value.asList());
             }
 
             if (station.getLines() != null && !station.getLines().equals("")) {
@@ -119,5 +122,53 @@ public class StationServiceImpl implements StationService {
         stations.add(station2);
         stations.add(station3);
         return stations;
+    }
+
+    @Override
+    public List<Map<String, Object>> findTop15LineNumberofStations() {
+
+        List<Map<String, Object>> mapList = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            // 找到 start-end-count对应
+            String cypher = String.format("match (n:vStations)-[]->(m:vLines)\n" +
+                    "with n.myId as id,n as stationNode,collect(distinct m.name) as lineList,count(m.name) as lineNumber\n" +
+                    "return id, stationNode,lineList,lineNumber order by lineNumber desc limit 15");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                //将records映射为map对象，listMap是存储的结果集合
+                Map<String, Object> listMap = new HashMap<>();
+                //取出record中的节点node
+                Value value = record.get("stationNode");
+                Map<String, Object> map = value.asNode().asMap();
+                String nodeString = JSONObject.toJSONString(map);
+                Station station = JSONObject.parseObject(nodeString, Station.class);
+                listMap.put("stationNode", station);
+
+                Map<String, Object> objectMap = record.asMap();
+                for (String key : objectMap.keySet()) {
+                    if (key.equals("lineList")) {
+                        String lines = JSONObject.toJSONString(objectMap.get(key));
+                        List<String> lineslist = JSONObject.parseObject(lines, List.class);
+                        listMap.put(key, lineslist);
+                    } else if (key.equals("lineNumber")) {
+                        Long lineNumber = (Long) objectMap.get(key);
+                        listMap.put(key, lineNumber);
+                    }
+                }
+                mapList.add(listMap);
+            }
+        }
+
+        return mapList;
+    }
+    //返回地铁站的数量
+
+    @Override
+    public List<String> findNumberOfMetroStations() {
+        List<String> stringList=stationRepository.findMetroStations();
+        if(stringList==null||stringList.size()==0)
+            return null;
+        return stringList;
     }
 }

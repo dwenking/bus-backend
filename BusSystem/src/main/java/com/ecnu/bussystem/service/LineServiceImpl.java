@@ -6,20 +6,24 @@ import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.respository.LineRepository;
+import io.swagger.models.auth.In;
+import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.SpringDataMongoDB;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class LineServiceImpl implements LineService {
+    @Autowired
+    StationServiceImpl stationService;
+
     @Autowired
     LineRepository lineRepository;
 
@@ -43,8 +47,7 @@ public class LineServiceImpl implements LineService {
         String regex = "^[a-z0-9A-Z]+$";
         if (routeName.endsWith("上行") || routeName.endsWith("下行")) {
             routeName = routeName.substring(0, routeName.length() - 2);
-        }
-        else if (routeName.matches(regex)){
+        } else if (routeName.matches(regex)) {
             routeName += "路";
         }
 
@@ -147,8 +150,7 @@ public class LineServiceImpl implements LineService {
         String regex = "^[a-z0-9A-Z]+$";
         if (routeName.matches(regex)) {
             routeName += "路";
-        }
-        else if (routeName.endsWith("上行") || routeName.endsWith("下行")) {
+        } else if (routeName.endsWith("上行") || routeName.endsWith("下行")) {
             routeName = routeName.substring(0, routeName.length() - 2);
         }
 
@@ -169,5 +171,118 @@ public class LineServiceImpl implements LineService {
         }
 
         return stationLines;
+    }
+
+    @Override
+    public List<StationLine> findAlongStationLineByStartAndEndName(String name1, String name2, String routename) {
+        //首先根据线路模糊查询到每条线路沿线的站
+        List<StationLine> stationLineList = new ArrayList<>();
+        List<StationLine> stationLines = this.findStationOfLineByVagueName(routename);
+        //没有找到相关的路线，返回null
+        if (stationLines == null || stationLines.size() == 0)
+            return null;
+        //遍历每条线路上的站，判断是否存在name1->name2的路线，如果有则存入stationlines中
+        for (int i = 0; i < stationLines.size(); i++) {
+            List<Station> stationList = stationLines.get(i).getStations();
+            List<Integer> indx1List = new ArrayList<>();
+            List<Integer> indx2List = new ArrayList<>();
+            //查找一条路线中从name1到name2的路线（防止有多条），直接记录下标计算
+            for (int j = 0; j < stationList.size(); j++) {
+                String thisStationName = stationList.get(j).getName();
+                if (thisStationName.equals(name1) || thisStationName.equals(name1 + "(始发站)") || thisStationName.equals(name1 + "(终点站)"))
+                    indx1List.add(j);
+                if (thisStationName.equals(name2) || thisStationName.equals(name2 + "(始发站)") || thisStationName.equals(name2 + "(终点站)"))
+                    indx2List.add(j);
+            }
+            //没有找到相关的站，之间continue
+            if (indx1List.size() == 0 || indx2List.size() == 0) continue;
+            //如果存在路线，则生成路线并计算时间
+            for (Integer index1 : indx1List) {
+                for (Integer index2 : indx2List) {
+                    if (index1 < index2) {
+                        String id1 = stationList.get(index1).getMyId();
+                        String id2 = stationList.get(index2).getMyId();
+                        Integer time = lineRepository.findTimebetweenTwoStations(id1, id2, stationLines.get(i).getName());
+                        List<Station> alongStations = new ArrayList<>(stationList.subList(index1, index2 + 1));
+                        stationLineList.add(new StationLine(stationLines.get(i).getName(), true, alongStations, time));
+                    }
+                }
+            }
+        }
+        return stationLineList;
+    }
+
+    //(具体的直达线路）返回两个站之间是否存在直达线路，返回从name1到name2的线路（！注意：如果是name1到name2则线路的directional设为true，如果是相反，则为false）
+    @Override
+    public List<StationLine> findDirectPathBetweenTwoStations(String name1, String name2) {
+        //存储直达线路的答案
+        List<StationLine> DirectPathList = new ArrayList<>();
+        //分别找出两个站name的站的集合，并已找到相关的线路，并返回在station中的lines数组中
+        List<Station> stationList1 = stationService.findLineOfStationByVagueName(name1);
+        List<Station> stationList2 = stationService.findLineOfStationByVagueName(name2);
+        if (stationList1 == null || stationList1.size() == 0 || stationList2 == null || stationList2.size() == 0)
+            return null;
+        for (Station station1 : stationList1) {
+            for (Station station2 : stationList2) {
+                List<String> routename1list = station1.getLines();
+                List<String> routename2list = station2.getLines();
+                if (routename1list == null || routename1list.size() == 0 || routename2list == null || routename2list.size() == 0)
+                    continue;
+                List<String> routenameList=new ArrayList<>(CollectionUtils.intersection(routename1list,routename2list));
+                //找到两个站的线路重合的线路，并遍历这些线路，找出线路中的两个站，截取直达的线路部分（注意方向）
+                for (String routename : routenameList) {
+                    StationLine stationLine = this.findStationOfLineByPreciseName(routename);
+                    if (stationLine == null) break;
+                    List<Station> stationList = stationLine.getStations();
+                    if (stationList == null || stationList.size() == 0) break;
+                    //找出该线路下两个站的下标位置
+                    Integer indx1 = -1;
+                    Integer indx2 = -1;
+                    for (int i = 0; i < stationList.size(); i++) {
+                        if (stationList.get(i).getMyId().equals(station1.getMyId())) indx1 = i;
+                        if (stationList.get(i).getMyId().equals(station2.getMyId())) indx2 = i;
+                    }
+                    if (indx1 == -1 || indx2 == -1) break;
+                    StationLine thisDirectpath = null;
+                    if (indx1 < indx2)
+                        thisDirectpath = new StationLine(stationLine.getName(), true, new ArrayList<>(stationList.subList(indx1, indx2 + 1)), 0);
+                    else
+                        thisDirectpath = new StationLine(stationLine.getName(), false, new ArrayList<>(stationList.subList(indx2, indx1 + 1)), 0);
+                    DirectPathList.add(thisDirectpath);
+                }
+            }
+        }
+        return DirectPathList;
+    }
+
+    @Override
+    public List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2) {
+        List<StationLine> stationLineList=this.findDirectPathBetweenTwoStations(name1,name2);
+        List<JSONObject> objects=new ArrayList<>();
+        if(stationLineList==null||stationLineList.size()==0)
+            return null;
+        Set<String> stationtruelist=new HashSet<>();
+        Set<String> stationfalselist=new HashSet<>();
+        for(StationLine stationLine:stationLineList){
+            //只有从name1->name2的线路名称需要
+            if(stationLine.getDirectional())
+                stationtruelist.add(stationLine.getName());
+            else
+                stationfalselist.add(stationLine.getName());
+        }
+        //对所有符合要求的线路名称进行去重，封装为JSONObject
+        for(String name:stationtruelist){
+            JSONObject jsonObject=new JSONObject();
+            jsonObject.put("name",name);
+            jsonObject.put("directional",name1+"->"+name2);
+            objects.add(jsonObject);
+        }
+        for(String name:stationfalselist){
+            JSONObject jsonObject=new JSONObject();
+            jsonObject.put("name",name);
+            jsonObject.put("directional",name2+"->"+name1);
+            objects.add(jsonObject);
+        }
+        return objects;
     }
 }

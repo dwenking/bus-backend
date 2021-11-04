@@ -13,6 +13,7 @@ public class StationLine implements Comparable{
     private String name;
     private Boolean directional;
     private List<Station> stations;
+    private Integer time;
 
     @Override
     public int compareTo(Object o) {
