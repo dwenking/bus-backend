@@ -1,5 +1,6 @@
 package com.ecnu.bussystem.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
@@ -28,7 +29,7 @@ public class TimetableController {
     ) {
         StationTimetable stationTimetable = timetableService.findTimetableByIdAndTime(time, id, line, count);
         if (stationTimetable == null || !stationTimetable.isValid()) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，站点id:" + id + " 线路：" + line + " 时间：" + time);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，站点id:" + id + " 线路：" + line + " 时间：" + time);
         }
         return JSONResult.success(stationTimetable);
     }
@@ -43,7 +44,7 @@ public class TimetableController {
     ) {
         List<StationTimetable> stationTimetables = timetableService.findTimetableByNameAndTime(time, name, line, count);
         if (stationTimetables == null || stationTimetables.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，站点name:" + name + " 线路：" + line + " 时间：" + time);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，站点name:" + name + " 线路：" + line + " 时间：" + time);
         }
         return JSONResult.success(stationTimetables);
     }
@@ -57,7 +58,7 @@ public class TimetableController {
     ) {
         StationTimetable stationTimetable = timetableService.findTimetableByIdAndTimeRange(time, range, id);
         if (stationTimetable == null || !stationTimetable.isValid()) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，站点id:" + id + " 时间：" + time);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，站点id:" + id + " 时间：" + time);
         }
         return JSONResult.success(stationTimetable);
     }
@@ -71,7 +72,7 @@ public class TimetableController {
     ) {
         List<StationTimetable> stationTimetables = timetableService.findTimetableByNameAndTimeRange(time, range, name);
         if (stationTimetables == null || stationTimetables.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，站点name:" + name + " 时间：" + time);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，站点name:" + name + " 时间：" + time);
         }
         return JSONResult.success(stationTimetables);
     }
@@ -83,8 +84,18 @@ public class TimetableController {
     ) {
         LineTimetable lineTimetable = timetableService.findTimetableByName(name);
         if (!lineTimetable.isValid()) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到班次信息，请检查输入，线路name:" + name);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，线路name:" + name);
         }
         return JSONResult.success(lineTimetable);
+    }
+
+    // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
+    @GetMapping(path = "/linesoflongestruntime")
+    public JSONResult<?> findTimetableByName() {
+        List<JSONObject> res = timetableService.findLinesOfLongestRuntime();
+        if (res == null || res.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(res);
     }
 }

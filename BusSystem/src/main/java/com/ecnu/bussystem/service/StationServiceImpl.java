@@ -5,12 +5,10 @@ import com.ecnu.bussystem.common.Neo4jUtil;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.respository.StationRepository;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -127,25 +125,28 @@ public class StationServiceImpl implements StationService {
 
 
     @Override
-    public List<Map<String, String>> findTop15StationPairs() {
-        List<Map<String, String>> mapList = new ArrayList<>();
+    public List<Map<String, Object>> findTop15StationPairs() {
+        List<Map<String, Object>> resMap = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
-            // 找到 start-end-count对应
-            String cypher = String.format("MATCH (n:Station)-[r]->(m:Station) " +
-                    "with n.name as start, m.name as end,count(r) as number order by number DESC limit 15 return start,end,number");
+            String cypher = String.format("MATCH (n:vStations)-[r]->(m:vStations) " +
+                    "with n as station1, m as station2,count(r) as number " +
+                    "order by number DESC limit 15 return station1,station2,number");
             Result result = session.run(cypher);
             List<Record> records = result.list();
             for (Record record : records) {
-                //将records映射为map对象
-                Map<String, Object> objectMap = record.asMap();
-                Map<String, String> map = new HashMap<>();
-                for (String cur : objectMap.keySet()) {
-                    map.put(cur, objectMap.get(cur).toString());
-                }
-                mapList.add(map);
+                Value value = record.get("station1");
+                Value value2 = record.get("station2");
+                Map<String, Object> map = value.asNode().asMap();
+                Map<String, Object> map2 = value2.asNode().asMap();
+
+                Map<String, Object> listMap = new HashMap<>();
+                listMap.put("station1", map);
+                listMap.put("station2", map2);
+                listMap.put("number", record.get("number").toString());
+                resMap.add(listMap);
             }
         }
-        return mapList;
+        return resMap;
     }
 
     @Override
@@ -190,8 +191,8 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<String> findNumberOfMetroStations() {
-        List<String> stringList=stationRepository.findMetroStations();
-        if(stringList==null||stringList.size()==0) {
+        List<String> stringList = stationRepository.findMetroStations();
+        if (stringList == null || stringList.size() == 0) {
             return null;
         }
         return stringList;
@@ -199,8 +200,8 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<String> findNumberOfBeginStations() {
-        List<String> stringList=stationRepository.findBeginStations();
-        if(stringList==null||stringList.size()==0) {
+        List<String> stringList = stationRepository.findBeginStations();
+        if (stringList == null || stringList.size() == 0) {
             return null;
         }
         return stringList;
@@ -208,8 +209,8 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<String> findNumberOfEndStations() {
-        List<String> stringList=stationRepository.findEndStations();
-        if(stringList==null||stringList.size()==0) {
+        List<String> stringList = stationRepository.findEndStations();
+        if (stringList == null || stringList.size() == 0) {
             return null;
         }
         return stringList;

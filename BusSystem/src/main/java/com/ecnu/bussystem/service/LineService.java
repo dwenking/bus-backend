@@ -78,5 +78,7 @@ public interface LineService {
      * @return {@code List<JSONObject>}
      */
     List<JSONObject> findTypeAndNumberOfLines();
+    
+    List<JSONObject> findTransferLines(String routeName);
 }
 

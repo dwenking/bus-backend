@@ -1,28 +1,28 @@
 package com.ecnu.bussystem.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.Neo4jUtil;
 import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.respository.LineRepository;
+import com.ecnu.bussystem.respository.StationRepository;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import springfox.documentation.spring.web.json.Json;
 
 import javax.annotation.Resource;
-import javax.print.attribute.standard.JobOriginatingUserName;
 import java.util.*;
 
 @Service
 public class LineServiceImpl implements LineService {
     @Autowired
     StationServiceImpl stationService;
+
+    @Autowired
+    StationRepository stationRepository;
 
     @Autowired
     LineRepository lineRepository;
@@ -180,7 +180,7 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             // key为routename-number
             String cypher = String.format("MATCH (n:vStations)-[]->(l:vLines) " +
-                    "with l.name as routename, count(n.name) as number " +
+                    "with l.name as routename, count(n.id) as number " +
                     "order by number DESC limit 15 return routename,number");
             Result result = session.run(cypher);
             List<Record> records = result.list();
@@ -393,27 +393,27 @@ public class LineServiceImpl implements LineService {
             //取站点名称的并集
             Collection<String> allStationName = CollectionUtils.union(line1list, line2list);
             Collection<String> intersectionStationName = CollectionUtils.intersection(line1list, line2list);
-            Collection<String> thisRouteOneWayStations=CollectionUtils.subtract(allStationName,intersectionStationName);
+            Collection<String> thisRouteOneWayStations = CollectionUtils.subtract(allStationName, intersectionStationName);
             oneWayStationNameSet.addAll(thisRouteOneWayStations);
         }
-        objects.put("stations",new ArrayList<>(oneWayStationNameSet));
-        objects.put("number",oneWayStationNameSet.size());
+        objects.put("stations", new ArrayList<>(oneWayStationNameSet));
+        objects.put("number", oneWayStationNameSet.size());
         return objects;
     }
 
     @Override
     public List<JSONObject> findTypeAndNumberOfLines() {
         //返回的list包括type和number
-        List<JSONObject> res=new ArrayList<>();
-        Map<String,String> typeMap=new HashMap<>();
-        typeMap.put("C","干线");
-        typeMap.put("S","社区线");
-        typeMap.put("N","夜班线");
-        typeMap.put("G","高峰线");
-        typeMap.put("K","快速公交");
-        typeMap.put("Z","支线");
-        typeMap.put("B","斑驳线");
-        typeMap.put("CC","城乡线");
+        List<JSONObject> res = new ArrayList<>();
+        Map<String, String> typeMap = new HashMap<>();
+        typeMap.put("C", "干线");
+        typeMap.put("S", "社区线");
+        typeMap.put("N", "夜班线");
+        typeMap.put("G", "高峰线");
+        typeMap.put("K", "快速公交");
+        typeMap.put("Z", "支线");
+        typeMap.put("B", "斑驳线");
+        typeMap.put("CC", "城乡线");
         try (Session session = neo4jDriver.session()) {
             // 找到单行的，路线lineNumber相同的路线对
             String cypher = String.format("MATCH (n:vLines) \n" +
@@ -422,19 +422,62 @@ public class LineServiceImpl implements LineService {
             Result result = session.run(cypher);
             List<Record> records = result.list();
             for (Record record : records) {
-                Map<String,Object> map=record.asMap();
-                JSONObject resline=new JSONObject();
-                for(String cur:map.keySet()){
-                    if(cur.equals("type")){
-                        resline.put("type",typeMap.get(map.get(cur)));
-                    }
-                    else {
-                        resline.put("number",map.get(cur));
+                Map<String, Object> map = record.asMap();
+                JSONObject resline = new JSONObject();
+                for (String cur : map.keySet()) {
+                    if (cur.equals("type")) {
+                        resline.put("type", typeMap.get(map.get(cur)));
+                    } else {
+                        resline.put("number", map.get(cur));
                     }
                 }
                 res.add(resline);
             }
         }
+        return res;
+    }
+
+    @Override
+    public List<JSONObject> findTransferLines(String routeName) {
+        List<JSONObject> res = new ArrayList<>();
+        Map<String, String> totalTransferLine = new HashMap<>();
+        try (Session session = neo4jDriver.session()) {
+            // 先找出该routeName对应线路的所有途径站点的id，放在stationID中
+            String cypher = String.format("match (n:vStations)-[]->(l:vLines{name:'%s'}) return n", routeName);
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            List<String> stationID = new ArrayList<>();
+            for (Record record : records) {
+                Value value = record.get("n");
+                Map<String, Object> map = value.asNode().asMap();
+                stationID.add(map.get("myId").toString());
+            }
+            // 遍历所有站点ID，找出和每个ID相连的线路即为可换乘线路，记得去掉一开始查询的路线routeName
+            for (String stationid : stationID) {
+                List<String> transferLineList = new ArrayList<>();
+                String cypher2 = String.format("match (n:vStations{myId:'%s'})-[]->(l:vLines) " +
+                        "with l.name as transferLine return distinct transferLine", stationid);
+                Result result2 = session.run(cypher2);
+                List<Record> records2 = result2.list();
+                for (Record record : records2) {
+                    Map<String, Object> map = record.asMap();
+                    if (!map.get("transferLine").equals(routeName)) {
+                        transferLineList.add(map.get("transferLine").toString());
+                        totalTransferLine.put(map.get("transferLine").toString(), "0");
+                    }
+                }
+                if (transferLineList.size() != 0) {
+                    JSONObject resLine = new JSONObject();
+                    resLine.put("TransferStation", stationRepository.findStationById(stationid).getName());
+                    resLine.put("TransferStationID", stationid);
+                    resLine.put("TransferLines", transferLineList);
+                    res.add(resLine);
+                }
+            }
+        }
+        JSONObject resLine2 = new JSONObject();
+        resLine2.put("TotalTransLineNumber", totalTransferLine.size());
+        res.add(resLine2);
         return res;
     }
 }

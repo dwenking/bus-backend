@@ -1,6 +1,5 @@
 package com.ecnu.bussystem.entity.timetable;
 
-import com.ecnu.bussystem.entity.Line;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,11 +9,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StationTimetable implements Comparable{
+public class StationTimetable implements Comparable {
     private String station;
     private String id;
     private List<Timetable> timetables;
-
     private int timetableCount = 0;
     // 该station在整条路线上的顺序
     private Integer stationIndex = -1;
@@ -25,8 +23,8 @@ public class StationTimetable implements Comparable{
 
     @Override
     public int compareTo(Object o) {
-        StationTimetable stationTimetable=(StationTimetable) o;
-        if(this.getStationIndex().compareTo(((StationTimetable) o).getStationIndex()) > 0) {
+        StationTimetable stationTimetable = (StationTimetable) o;
+        if (this.getStationIndex().compareTo(((StationTimetable) o).getStationIndex()) > 0) {
             return 1;
         } else {
             return -1;

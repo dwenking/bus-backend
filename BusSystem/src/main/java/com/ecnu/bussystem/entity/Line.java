@@ -26,12 +26,6 @@ public class Line implements Serializable, Comparable {
     @Property(name = "directional")
     private Boolean directional;
 
-    @Property(name = "startRuntime")
-    private String startRuntime;
-
-    @Property(name = "endRuntime")
-    private String endRuntime;
-
     @Property(name = "interval")
     private Integer interval;
 
