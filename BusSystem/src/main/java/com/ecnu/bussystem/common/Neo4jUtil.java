@@ -12,7 +12,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Neo4jUtil {
-    // 确保是return n的情况
+    /**
+     * 确保是return n的情况
+     * @param result 结果
+     * @return {@code List<String>}
+     */
     public static List<String> getJsonStringFromNodeResult(Result result) {
         List<Record> records = result.list();
         List<String> mapStrings = new ArrayList<>();
@@ -28,7 +32,12 @@ public class Neo4jUtil {
         return mapStrings;
     }
 
-    // 确保是return p的情况
+    /**
+     * 确保是return p的情况
+     *
+     * @param result 结果
+     * @return {@code List<String>}
+     */
     public static List<String> getJsonStringFromPathResult(Result result) {
         List<Record> records = result.list();
         List<String> mapStrings = new ArrayList<>();

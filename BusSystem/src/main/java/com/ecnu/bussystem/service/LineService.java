@@ -23,16 +23,60 @@ public interface LineService {
     // 根据站点数量对线路进行排序
     List<Map<String, String>> findTop15MostStationsRoutes();
 
-    //找到两个线路之间的重复站点数
-    List<Map<String, String>> findDuplicateStations(String lineName1, String lineName2);
 
-    //根据起始站点和公交线路名返回路线上的站（方向，站点和运行时间）
-    List<StationLine> findAlongStationLineByStartAndEndName(String name1,String name2,String routename);
+    /**
+     * 找到两个线路之间重复的站点数
+     *
+     * @param lineName1 行name1
+     * @param lineName2 行name2
+     * @return {@code List<Map<String, String>>}
+     */
+    JSONObject findDuplicateStations(String lineName1, String lineName2);
 
-    //根据两个站点求两个站点之间有没有直达路径
-    List<StationLine> findDirectPathBetweenTwoStations(String name1,String name2);
+    /**
+     * 发现在站逐开始和结束的名字
+     * 根据起始站点和公交线路名返回路线上的站（方向，站点和运行时间）
+     *
+     * @param name1     name1
+     * @param name2     name2
+     * @param routename routename
+     * @return {@code List<StationLine>}
+     */
+    List<StationLine> findAlongStationLineByStartAndEndName(String name1, String name2, String routename);
 
-    //根据两个站点返回之间直达线路的路径和方向
+    /**
+     * 找到两个站之间的直接路径
+     * 根据两个站点求两个站点之间有没有直达路径
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<StationLine>}
+     */
+    List<StationLine> findDirectPathBetweenTwoStations(String name1, String name2);
+
+    /**
+     * 找到两个站之间的直接路径名
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
     List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2);
+
+
+    /**
+     * 找到所有单行站的数量，根据上下行的路线上的站进行对比
+     *
+     * @return {@code List<Map<String, String>>}
+     */
+    JSONObject findTheNumberOfOneWayStations();
+
+
+    /**
+     * 按照路线的type分组计算数量
+     *
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findTypeAndNumberOfLines();
 }
 

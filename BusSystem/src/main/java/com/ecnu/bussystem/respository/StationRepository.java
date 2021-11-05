@@ -17,4 +17,11 @@ public interface StationRepository extends Neo4jRepository<Station, Long> {
 
     @Query("match(n:vStations) where n.type=\"metro\" return distinct n.name")
     List<String> findMetroStations();
+
+    @Query("match (n:vStations) where n.name contains \"始发站\" return distinct n.name")
+    List<String> findBeginStations();
+
+    @Query("match (n:vStations) where n.name contains \"终点站\" return distinct n.name")
+    List<String> findEndStations();
+
 }

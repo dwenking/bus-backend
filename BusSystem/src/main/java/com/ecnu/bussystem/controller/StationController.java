@@ -80,4 +80,25 @@ public class StationController {
         }
         return JSONResult.success(stringList);
     }
+
+    @GetMapping(path = "/findnumberofbeginstations")
+    public JSONResult<?> findNumberOfBeginStations() {
+        List<String> stringList = stationService.findNumberOfBeginStations();
+        if (stringList == null || stringList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(stringList);
+    }
+
+    @GetMapping(path = "/findnumberofendstations")
+    public JSONResult<?> findNumberOfEndStations() {
+        List<String> stringList = stationService.findNumberOfEndStations();
+        if (stringList == null || stringList.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(stringList);
+    }
+
+
+
 }
