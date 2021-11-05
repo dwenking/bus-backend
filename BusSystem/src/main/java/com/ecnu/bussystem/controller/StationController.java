@@ -1,13 +1,14 @@
 package com.ecnu.bussystem.controller;
 
 
-import com.alibaba.fastjson.JSON;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.service.StationServiceImpl;
-import io.swagger.annotations.ApiModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
@@ -54,11 +55,12 @@ public class StationController {
         return JSONResult.success(stationList);
     }
 
+    //返回站点间直达线路最多的两个站点的全部信息及线路数量，显示降序前十五个
     @GetMapping(path = "/top15stationpairs")
-    public JSONResult<?> findTop15StationPairs(){
-        List<Map<String,String>> mapList=stationService.findTop15StationPairs();
+    public JSONResult<?> findTop15StationPairs() {
+        List<Map<String, Object>> mapList = stationService.findTop15StationPairs();
         if (mapList == null || mapList.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到数据");
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
         }
         return JSONResult.success(mapList);
     }
@@ -98,7 +100,6 @@ public class StationController {
         }
         return JSONResult.success(stringList);
     }
-
 
 
 }

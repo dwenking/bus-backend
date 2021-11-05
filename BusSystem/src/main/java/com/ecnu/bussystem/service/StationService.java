@@ -25,7 +25,7 @@ public interface StationService {
      *
      * @return {@code List<Map<String, String>>}
      */
-    List<Map<String, String>> findTop15StationPairs();
+    List<Map<String, Object>> findTop15StationPairs();
 
     /**
      * 根据id分组返回线路最多的15个站点

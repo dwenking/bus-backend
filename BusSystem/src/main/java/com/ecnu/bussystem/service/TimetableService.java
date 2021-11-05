@@ -1,5 +1,6 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
 
@@ -20,4 +21,7 @@ public interface TimetableService {
 
     // 指定线路名，返回班次信息（仅支持精确名称查找）
     LineTimetable findTimetableByName(String lineName);
+
+    // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
+    List<JSONObject> findLinesOfLongestRuntime();
 }

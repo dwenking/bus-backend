@@ -63,13 +63,24 @@ public class LineController {
         return JSONResult.success(object);
     }
 
-    @GetMapping(path = "findtypeandnumberoflines")
-    public JSONResult<?> findTypeAndNumberOfLines(){
-        List<JSONObject> jsonObjects=lineService.findTypeAndNumberOfLines();
-        if(jsonObjects==null ||jsonObjects.size()==0){
+    @GetMapping(path = "/findtypeandnumberoflines")
+    public JSONResult<?> findTypeAndNumberOfLines() {
+        List<JSONObject> jsonObjects = lineService.findTypeAndNumberOfLines();
+        if (jsonObjects == null || jsonObjects.size() == 0) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
         }
         return JSONResult.success(jsonObjects);
+    }
+    //统计某个线路上每个站点可以换乘的线路，站点根据id查找换乘路线
+    @GetMapping(path = "/findtransferlines/{name}")
+    public JSONResult<?> findTransferLines(
+            @PathVariable String name
+    ) {
+        List<JSONObject> res = lineService.findTransferLines(name);
+        if (res == null || res.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "该线路所有站点都没有可换乘的线路");
+        }
+        return JSONResult.success(res);
     }
 
 

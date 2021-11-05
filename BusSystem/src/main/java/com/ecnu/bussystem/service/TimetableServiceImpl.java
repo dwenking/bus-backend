@@ -1,8 +1,10 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
+import com.ecnu.bussystem.entity.timetable.RuntimeTable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
 import com.ecnu.bussystem.entity.timetable.Timetable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
-public class TimetableServiceImpl implements TimetableService{
+public class TimetableServiceImpl implements TimetableService {
     @Autowired
     MongoTemplate mongoTemplate;
 
@@ -39,7 +41,7 @@ public class TimetableServiceImpl implements TimetableService{
         query.addCriteria(Criteria.where("stationID").is(stationId));
         query.addCriteria(Criteria.where("routeName").in(lineName, lineName + "上行", lineName + "下行", lineName + "路上行", lineName + "路下行"));
         query.addCriteria(Criteria.where("passTime").gte(time));
-        query.with(Sort.by(Sort.Direction.ASC,"passTime"));
+        query.with(Sort.by(Sort.Direction.ASC, "passTime"));
         query.limit(Integer.parseInt(count));
 
         List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
@@ -48,13 +50,13 @@ public class TimetableServiceImpl implements TimetableService{
         }
 
         try {
-            SimpleDateFormat formatter=new SimpleDateFormat("HH:mm");
-            Date date=formatter.parse(time);
+            SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
+            Date date = formatter.parse(time);
 
             // Timetable里需要增加一个字段minutes，显示几分钟后到站
             for (Timetable timetable : find) {
                 String passTime = timetable.getPassTime();
-                Date tmp =formatter.parse(passTime);
+                Date tmp = formatter.parse(passTime);
                 int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
                 timetable.setMinutes(minutes);
             }
@@ -72,7 +74,7 @@ public class TimetableServiceImpl implements TimetableService{
         List<StationTimetable> stationTimetables = new ArrayList<>();
 
         // 先在neo4j中查找所有符合name的Station
-        List<Station> stationList= stationService.findStationByVagueName(stationName);
+        List<Station> stationList = stationService.findStationByVagueName(stationName);
 
         // 找到每个Station的Timetable
         for (Station station : stationList) {
@@ -92,16 +94,16 @@ public class TimetableServiceImpl implements TimetableService{
             return null;
         }
 
-        SimpleDateFormat formatter=new SimpleDateFormat("HH:mm");
+        SimpleDateFormat formatter = new SimpleDateFormat("HH:mm");
         StationTimetable stationTimetable;
         try {
-            Date date=formatter.parse(time);
-            String time1 = formatter.format(new Date(date.getTime() + (long)range * 60 * 1000));
+            Date date = formatter.parse(time);
+            String time1 = formatter.format(new Date(date.getTime() + (long) range * 60 * 1000));
 
             Query query = new Query();
             query.addCriteria(Criteria.where("stationID").is(stationId));
             query.addCriteria(Criteria.where("passTime").gte(time).lte(time1));
-            query.with(Sort.by(Sort.Direction.ASC,"passTime"));
+            query.with(Sort.by(Sort.Direction.ASC, "passTime"));
 
             List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
             if (find == null || find.size() == 0) {
@@ -111,7 +113,7 @@ public class TimetableServiceImpl implements TimetableService{
             // Timetable里需要增加一个字段minutes，显示几分钟后到站
             for (Timetable timetable : find) {
                 String passTime = timetable.getPassTime();
-                Date tmp =formatter.parse(passTime);
+                Date tmp = formatter.parse(passTime);
                 int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
                 timetable.setMinutes(minutes);
             }
@@ -129,7 +131,7 @@ public class TimetableServiceImpl implements TimetableService{
         List<StationTimetable> stationTimetables = new ArrayList<>();
 
         // 先在neo4j中查找所有符合name的Station
-        List<Station> stationList= stationService.findStationByVagueName(stationName);
+        List<Station> stationList = stationService.findStationByVagueName(stationName);
 
         // 找到每个Station的Timetable
         for (Station station : stationList) {
@@ -156,8 +158,8 @@ public class TimetableServiceImpl implements TimetableService{
 
         Query query = new Query();
         query.addCriteria(Criteria.where("routeName").is(lineName));
-        query.with(Sort.by(Sort.Direction.ASC,"stationID"));
-        query.with(Sort.by(Sort.Direction.ASC,"passTime"));
+        query.with(Sort.by(Sort.Direction.ASC, "stationID"));
+        query.with(Sort.by(Sort.Direction.ASC, "passTime"));
         List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
         if (find == null || find.size() == 0) {
             return null;
@@ -206,7 +208,7 @@ public class TimetableServiceImpl implements TimetableService{
         // 存储该station在线路上的顺序
         Map<String, Integer> stationMap = new HashMap<>();
 
-        for (int i = 0; i < stationCount;i++) {
+        for (int i = 0; i < stationCount; i++) {
             stationMap.put(list.get(i).getMyId(), i);
         }
 
@@ -224,5 +226,32 @@ public class TimetableServiceImpl implements TimetableService{
         lineTimetable.setTimetables(stationTimetables);
 
         return lineTimetable;
+    }
+
+    // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
+    @Override
+    public List<JSONObject> findLinesOfLongestRuntime() {
+        List<JSONObject> res = new ArrayList<>();
+        try {
+            Query query = new Query();
+            query.with(Sort.by(Sort.Direction.DESC, "rate"));
+            query.limit(15);
+            List<RuntimeTable> find = mongoTemplate.find(query, RuntimeTable.class, "runtime");
+            if (find == null || find.size() == 0) {
+                System.out.println("出错啦！！");
+                return null;
+            }
+            for (RuntimeTable tmp : find) {
+                JSONObject resline = new JSONObject();
+                resline.put("routeName", tmp.getName());
+                resline.put("runtime", tmp.getRuntime());
+                resline.put("firstBus", tmp.getFirstBus());
+                resline.put("lastBus", tmp.getLastBus());
+                res.add(resline);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+        return res;
     }
 }
