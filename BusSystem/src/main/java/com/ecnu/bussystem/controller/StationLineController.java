@@ -63,7 +63,7 @@ public class StationLineController {
             @RequestParam("name1") String lineName1,
             @RequestParam("name2") String lineName2
     ) {
-        List<Map<String, String>> stations = lineService.findDuplicateStations(lineName1, lineName2);
+        JSONObject stations = lineService.findDuplicateStations(lineName1, lineName2);
         if (stations == null || stations.size() == 0) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + lineName1 + "name2" + lineName2);
         }
@@ -71,7 +71,7 @@ public class StationLineController {
     }
 
     //根据线路数据和首末节点返回线路
-    @GetMapping(path = "/lineofstartansendstation/{routename}:{name1}-{name2}")
+    @GetMapping(path = "/lineofstartansendstation/{routename}:{name1}{name2}")
     public JSONResult<?> findAlongStationLineByStartAndEndName(
             @PathVariable String routename,
             @PathVariable String name1,
@@ -84,7 +84,7 @@ public class StationLineController {
         return JSONResult.success(stationLines);
     }
 
-    @GetMapping(path = "/directpathbetweentwostations/{name1}-{name2}")
+    @GetMapping(path = "/directpathbetweentwostations/{name1}{name2}")
     public JSONResult<?>findDirectPathBetweenTwoStations(
             @PathVariable String name1,
             @PathVariable String name2

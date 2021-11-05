@@ -1,5 +1,6 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.Neo4jUtil;
 import com.ecnu.bussystem.entity.Line;
@@ -7,21 +8,15 @@ import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.respository.LineRepository;
 import org.apache.commons.collections4.CollectionUtils;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-import io.swagger.models.auth.In;
-import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.driver.*;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Path;
+import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.SpringDataMongoDB;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import springfox.documentation.spring.web.json.Json;
 
 import javax.annotation.Resource;
+import javax.print.attribute.standard.JobOriginatingUserName;
 import java.util.*;
 
 @Service
@@ -131,7 +126,8 @@ public class LineServiceImpl implements LineService {
             try {
                 List<String> mapStrings = Neo4jUtil.getJsonStringFromPathResult(result);
                 for (String string : mapStrings) {
-                    Station station = JSONObject.parseObject(string, Station.class); //json字符串直接转给java对象
+                    //json字符串直接转给java对象
+                    Station station = JSONObject.parseObject(string, Station.class);
                     stations.add(station);
                 }
             } catch (Exception e) {
@@ -147,7 +143,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<StationLine> findStationOfLineByVagueName(String routeName) {
-        if (routeName == null || routeName.equals("")) {
+        if (routeName == null || routeName.length() == 0) {
             return null;
         }
 
@@ -202,27 +198,24 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<Map<String, String>> findDuplicateStations(String lineName1, String lineName2) {
-        List<Map<String, String>> mapList = new ArrayList<>();
-        List<Station> lineStation1 = this.findStationOfLineByPreciseName(lineName1).getStations();
-        List<Station> lineStation2 = this.findStationOfLineByPreciseName(lineName2).getStations();
-        List<String> stationNames1 = new ArrayList<>();
-        List<String> stationNames2 = new ArrayList<>();
-        for (Station station : lineStation1) {
-            stationNames1.add(station.getName());
-        }
-        for (Station station : lineStation2) {
-            stationNames2.add(station.getName());
-        }
-        Collection<String> res = CollectionUtils.intersection(stationNames1, stationNames2);
-        int cnt = res.size();
-        Map<String, String> map = new HashMap<>();
+    public JSONObject findDuplicateStations(String lineName1, String lineName2) {
+        JSONObject map = new JSONObject();
         map.put("line1", lineName1);
         map.put("line2", lineName2);
-        map.put("number", String.valueOf(cnt));
-        map.put("stations", res.toString());
-        mapList.add(map);
-        return mapList;
+        StationLine lineStation1 = this.findStationOfLineByPreciseName(lineName1);
+        StationLine lineStation2 = this.findStationOfLineByPreciseName(lineName2);
+        if (lineStation1 == null || lineStation2 == null) {
+            map.put("number", 0);
+            map.put("stations", null);
+            return map;
+        }
+        Set<String> stationNames1 = new HashSet<>(lineStation1.returnAllStationNames());
+        Set<String> stationNames2 = new HashSet<>(lineStation2.returnAllStationNames());
+        Collection<String> res = CollectionUtils.intersection(stationNames1, stationNames2);
+        int cnt = res.size();
+        map.put("number", cnt);
+        map.put("stations", new ArrayList<>(res));
+        return map;
     }
 
     @Override
@@ -287,7 +280,7 @@ public class LineServiceImpl implements LineService {
                 if (routename1list == null || routename1list.size() == 0 || routename2list == null || routename2list.size() == 0) {
                     continue;
                 }
-                List<String> routenameList=new ArrayList<>(CollectionUtils.intersection(routename1list,routename2list));
+                List<String> routenameList = new ArrayList<>(CollectionUtils.intersection(routename1list, routename2list));
                 //找到两个站的线路重合的线路，并遍历这些线路，找出线路中的两个站，截取直达的线路部分（注意方向）
                 for (String routename : routenameList) {
                     StationLine stationLine = this.findStationOfLineByPreciseName(routename);
@@ -327,34 +320,121 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2) {
-        List<StationLine> stationLineList=this.findDirectPathBetweenTwoStations(name1,name2);
-        List<JSONObject> objects=new ArrayList<>();
-        if(stationLineList==null||stationLineList.size()==0) {
+        List<StationLine> stationLineList = this.findDirectPathBetweenTwoStations(name1, name2);
+        List<JSONObject> objects = new ArrayList<>();
+        if (stationLineList == null || stationLineList.size() == 0) {
             return null;
         }
-        Set<String> stationtruelist=new HashSet<>();
-        Set<String> stationfalselist=new HashSet<>();
-        for(StationLine stationLine:stationLineList){
+        Set<String> stationtruelist = new HashSet<>();
+        Set<String> stationfalselist = new HashSet<>();
+        for (StationLine stationLine : stationLineList) {
             //只有从name1->name2的线路名称需要
-            if(stationLine.getDirectional()) {
+            if (stationLine.getDirectional()) {
                 stationtruelist.add(stationLine.getName());
             } else {
                 stationfalselist.add(stationLine.getName());
             }
         }
         //对所有符合要求的线路名称进行去重，封装为JSONObject
-        for(String name:stationtruelist){
-            JSONObject jsonObject=new JSONObject();
-            jsonObject.put("name",name);
-            jsonObject.put("directional",name1+"->"+name2);
+        for (String name : stationtruelist) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("name", name);
+            jsonObject.put("directional", name1 + "->" + name2);
             objects.add(jsonObject);
         }
-        for(String name:stationfalselist){
-            JSONObject jsonObject=new JSONObject();
-            jsonObject.put("name",name);
-            jsonObject.put("directional",name2+"->"+name1);
+        for (String name : stationfalselist) {
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("name", name);
+            jsonObject.put("directional", name2 + "->" + name1);
             objects.add(jsonObject);
         }
         return objects;
+    }
+
+    @Override
+    public JSONObject findTheNumberOfOneWayStations() {
+        //存储单行站的数量和名称
+        JSONObject objects = new JSONObject();
+        Set<String> oneWayStationNameSet = new HashSet<>();
+        //存储下方的单行路线的名称
+        List<String> pairList = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            // 找到单行的，路线lineNumber相同的路线对
+            String cypher = String.format("match(n:vLines),(m:vLines) where n.lineNumber=m.lineNumber and n.name<m.name \n" +
+                    "with n.name as line1,m.name as line2\n" +
+                    "return line1,line2");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                //将records映射为map对象，按照line1，line2的顺序压入pairlist中
+                Map<String, Object> objectMap = record.asMap();
+                for (String cur : objectMap.keySet()) {
+                    pairList.add(objectMap.get(cur).toString());
+                }
+            }
+        }
+        //如果不存在单行的线路
+        if (pairList.size() == 0) {
+            return null;
+        }
+        //遍历所有的线路
+        for (int i = 0; i < pairList.size(); i = i + 2) {
+            String line1name = pairList.get(i);
+            String line2name = pairList.get(i + 1);
+            //取两条线路的stationline
+            StationLine stationLine1 = this.findStationOfLineByPreciseName(line1name);
+            StationLine stationLine2 = this.findStationOfLineByPreciseName(line2name);
+            if (stationLine1 == null || stationLine2 == null || stationLine1.getStations() == null || stationLine2.getStations() == null) {
+                continue;
+            }
+            //获得两条线路上站的名称
+            Set<String> line1list = new HashSet<>(stationLine1.returnAllStationNames());
+            Set<String> line2list = new HashSet<>(stationLine2.returnAllStationNames());
+            //取站点名称的并集
+            Collection<String> allStationName = CollectionUtils.union(line1list, line2list);
+            Collection<String> intersectionStationName = CollectionUtils.intersection(line1list, line2list);
+            Collection<String> thisRouteOneWayStations=CollectionUtils.subtract(allStationName,intersectionStationName);
+            oneWayStationNameSet.addAll(thisRouteOneWayStations);
+        }
+        objects.put("stations",new ArrayList<>(oneWayStationNameSet));
+        objects.put("number",oneWayStationNameSet.size());
+        return objects;
+    }
+
+    @Override
+    public List<JSONObject> findTypeAndNumberOfLines() {
+        //返回的list包括type和number
+        List<JSONObject> res=new ArrayList<>();
+        Map<String,String> typeMap=new HashMap<>();
+        typeMap.put("C","干线");
+        typeMap.put("S","社区线");
+        typeMap.put("N","夜班线");
+        typeMap.put("G","高峰线");
+        typeMap.put("K","快速公交");
+        typeMap.put("Z","支线");
+        typeMap.put("B","斑驳线");
+        typeMap.put("CC","城乡线");
+        try (Session session = neo4jDriver.session()) {
+            // 找到单行的，路线lineNumber相同的路线对
+            String cypher = String.format("MATCH (n:vLines) \n" +
+                    "with n.type as type, count(n) as number\n" +
+                    "return type, number order by number desc");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Map<String,Object> map=record.asMap();
+                JSONObject resline=new JSONObject();
+                for(String cur:map.keySet()){
+                    if(cur.equals("type")){
+                        resline.put("type",typeMap.get(map.get(cur)));
+                    }
+                    else {
+                        resline.put("number",map.get(cur));
+                    }
+                }
+                res.add(resline);
+            }
+        }
+        return res;
     }
 }

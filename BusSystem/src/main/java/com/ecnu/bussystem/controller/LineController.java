@@ -1,6 +1,7 @@
 package com.ecnu.bussystem.controller;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.service.LineServiceImpl;
@@ -45,12 +46,30 @@ public class LineController {
 
     // 根据站点数量对线路进行排序
     @GetMapping(path = "/top15moststationsroutes")
-    public JSONResult<?> findTop15MostStationsRoutes(){
-        List<Map<String,String>> mapList=lineService.findTop15MostStationsRoutes();
+    public JSONResult<?> findTop15MostStationsRoutes() {
+        List<Map<String, String>> mapList = lineService.findTop15MostStationsRoutes();
         if (mapList == null || mapList.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR,"未找到数据");
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
         }
         return JSONResult.success(mapList);
+    }
+
+    @GetMapping(path = "/findthenumberofonewaystations")
+    public JSONResult<?> findTheNumberOfOneWayStations() {
+        JSONObject object = lineService.findTheNumberOfOneWayStations();
+        if (object == null) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(object);
+    }
+
+    @GetMapping(path = "findtypeandnumberoflines")
+    public JSONResult<?> findTypeAndNumberOfLines(){
+        List<JSONObject> jsonObjects=lineService.findTypeAndNumberOfLines();
+        if(jsonObjects==null ||jsonObjects.size()==0){
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
+        }
+        return JSONResult.success(jsonObjects);
     }
 
 

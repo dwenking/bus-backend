@@ -5,6 +5,7 @@ import com.ecnu.bussystem.common.Neo4jUtil;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.respository.StationRepository;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,7 +90,6 @@ public class StationServiceImpl implements StationService {
             for (Record record : records) {
                 Value value = record.get("COLLECT(n.name)");
                 System.out.println("value: " + value);
-
                 // 类型转换
                 station.setLines((List<String>) (List) value.asList());
             }
@@ -125,7 +125,7 @@ public class StationServiceImpl implements StationService {
         return stations;
     }
 
-    //找到两个相邻站之间路径最多的两个站及数量
+
     @Override
     public List<Map<String, String>> findTop15StationPairs() {
         List<Map<String, String>> mapList = new ArrayList<>();
@@ -136,10 +136,8 @@ public class StationServiceImpl implements StationService {
             Result result = session.run(cypher);
             List<Record> records = result.list();
             for (Record record : records) {
-                //System.out.println(record);
                 //将records映射为map对象
                 Map<String, Object> objectMap = record.asMap();
-                //System.out.println(record.asMap());
                 Map<String, String> map = new HashMap<>();
                 for (String cur : objectMap.keySet()) {
                     map.put(cur, objectMap.get(cur).toString());
@@ -193,6 +191,24 @@ public class StationServiceImpl implements StationService {
     @Override
     public List<String> findNumberOfMetroStations() {
         List<String> stringList=stationRepository.findMetroStations();
+        if(stringList==null||stringList.size()==0) {
+            return null;
+        }
+        return stringList;
+    }
+
+    @Override
+    public List<String> findNumberOfBeginStations() {
+        List<String> stringList=stationRepository.findBeginStations();
+        if(stringList==null||stringList.size()==0) {
+            return null;
+        }
+        return stringList;
+    }
+
+    @Override
+    public List<String> findNumberOfEndStations() {
+        List<String> stringList=stationRepository.findEndStations();
         if(stringList==null||stringList.size()==0) {
             return null;
         }

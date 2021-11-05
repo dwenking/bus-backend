@@ -1,5 +1,6 @@
 package com.ecnu.bussystem;
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.service.LineServiceImpl;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.TextScore;
 
 import java.util.List;
 import java.util.Map;
@@ -50,7 +52,7 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testfindTop15LineNumberofStations(){
+    void testFindTop15LineNumberofStations(){
         List<Map<String,Object>> anslist=stationService.findTop15LineNumberofStations();
         if(anslist==null || anslist.size()==0) {
             System.out.println("不存在");
@@ -62,7 +64,7 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testfindDirectPathBetweenTwoStations(){
+    void testFindDirectPathBetweenTwoStations(){
         String name1="航天立交东";
         String name2="生态公园";
         List<StationLine> stationLines=lineService.findDirectPathBetweenTwoStations(name1,name2);
@@ -81,7 +83,7 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testfindAlongStationLineByStartAndEndName() {
+    void testFindAlongStationLineByStartAndEndName() {
         List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("画展中心", "金河客运站", "1路");
         if (stationLines == null) {
             System.out.println("不存在路线");
@@ -113,8 +115,11 @@ class BusSystemApplicationTests {
     @Test
     void testFindRouteByVagueName() {
         List<StationLine> stationLines = lineService.findStationOfLineByVagueName("1路");
+        if(stationLines==null){
+            System.out.println("线路不存在");
+            return;
+        }
         System.out.println("size: " + stationLines.size());
-
         for (StationLine cur : stationLines) {
             System.out.println((cur.getName()) + ":");
             List<Station> stations = cur.getStations();
@@ -140,8 +145,50 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void findDuplicateStations() {
-        List<Map<String, String>> res = lineService.findDuplicateStations("523路上行", "523路下行");
+    void testFindDuplicateStations() {
+        JSONObject res = lineService.findDuplicateStations("523路上行", "523路下行");
+        if(res==null){
+            System.out.println("数据不存在");
+            return;
+        }
         System.out.println(res);
+    }
+
+    @Test
+    void testFindTheNumberOfOneWayStations(){
+        JSONObject res=lineService.findTheNumberOfOneWayStations();
+        if(res==null){
+            System.out.println("数据不存在");
+            return;
+        }
+        System.out.println(res);
+    }
+
+    @Test
+    void  testFindNumberOfMetroStations(){
+        System.out.println(stationService.findNumberOfMetroStations());
+    }
+
+    @Test
+    void testFindNumberOfBeginStations(){
+        System.out.println(stationService.findNumberOfBeginStations());
+    }
+
+    @Test
+    void testFindNumberOfEndStations(){
+        System.out.println(stationService.findNumberOfEndStations());
+    }
+
+
+    @Test
+    void testfindTypeAndNumberOfLines(){
+        List<JSONObject> res=lineService.findTypeAndNumberOfLines();
+        if(res==null||res.size()==0){
+            System.out.println("数据不存在");
+            return;
+        }
+        for(JSONObject line:res){
+            System.out.println(line);
+        }
     }
 }
