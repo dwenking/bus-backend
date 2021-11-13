@@ -64,7 +64,7 @@ public class TimetableServiceImpl implements TimetableService {
             return null;
         }
 
-        StationTimetable stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
+        StationTimetable stationTimetable = new StationTimetable(find.get(0).getStationName(), stationId, find, find.size(), -1);
 
         return stationTimetable;
     }
@@ -118,7 +118,7 @@ public class TimetableServiceImpl implements TimetableService {
                 timetable.setMinutes(minutes);
             }
 
-            stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
+            stationTimetable = new StationTimetable( find.get(0).getStationName(), stationId, find, find.size(), -1);
         } catch (Exception e) {
             return null;
         }
@@ -132,6 +132,8 @@ public class TimetableServiceImpl implements TimetableService {
 
         // 先在neo4j中查找所有符合name的Station
         List<Station> stationList = stationService.findStationByVagueName(stationName);
+
+        System.out.println(stationList.size());
 
         // 找到每个Station的Timetable
         for (Station station : stationList) {
