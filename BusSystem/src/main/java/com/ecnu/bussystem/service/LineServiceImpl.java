@@ -180,7 +180,7 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             // key为routename-number
             String cypher = String.format("MATCH (n:vStations)-[]->(l:vLines) " +
-                    "with l.name as routename, count(n.id) as number " +
+                    "with l.name as routename, count(n.myId) as number " +
                     "order by number DESC limit 15 return routename,number");
             Result result = session.run(cypher);
             List<Record> records = result.list();
@@ -417,7 +417,7 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             // 找到单行的，路线lineNumber相同的路线对
             String cypher = String.format("MATCH (n:vLines) \n" +
-                    "with n.type as type, count(n) as number\n" +
+                    "with n.type as type, count(distinct n.lineNumber) as number\n" +
                     "return type, number order by number desc");
             Result result = session.run(cypher);
             List<Record> records = result.list();

@@ -7,9 +7,9 @@ spring:
 
   neo4j:
     authentication:
-      password: 20010605
+      password: xochitlqx77
       username: neo4j
     uri: bolt://localhost:7687
 
 server:
-  port: 8080
+  port: 9090
