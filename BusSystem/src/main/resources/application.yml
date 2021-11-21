@@ -1,7 +1,6 @@
 spring:
   data:
     mongodb:
-#      uri: mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false  # 开启了用户验证
       uri: mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false
       database: bussystem
 
