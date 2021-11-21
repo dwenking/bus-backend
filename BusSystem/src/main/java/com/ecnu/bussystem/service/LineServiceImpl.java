@@ -198,24 +198,32 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public JSONObject findDuplicateStations(String lineName1, String lineName2) {
-        JSONObject map = new JSONObject();
-        map.put("line1", lineName1);
-        map.put("line2", lineName2);
+    public List<JSONObject> findDuplicateStations(String lineName1, String lineName2) {
+        List<JSONObject> res = new ArrayList<>();
         StationLine lineStation1 = this.findStationOfLineByPreciseName(lineName1);
         StationLine lineStation2 = this.findStationOfLineByPreciseName(lineName2);
         if (lineStation1 == null || lineStation2 == null) {
-            map.put("number", 0);
-            map.put("stations", null);
-            return map;
+            JSONObject resLine = new JSONObject();
+            resLine.put("stationName", null);
+            resLine.put("stationID", null);
+            resLine.put("english",null);
+            res.add(resLine);
+            return res;
         }
-        Set<String> stationNames1 = new HashSet<>(lineStation1.returnAllStationNames());
-        Set<String> stationNames2 = new HashSet<>(lineStation2.returnAllStationNames());
-        Collection<String> res = CollectionUtils.intersection(stationNames1, stationNames2);
-        int cnt = res.size();
-        map.put("number", cnt);
-        map.put("stations", new ArrayList<>(res));
-        return map;
+        //修改为：重复站点名由ID区分
+        Set<String> stationID1 = new HashSet<>(lineStation1.returnAllStationMyId());
+        Set<String> stationID2 = new HashSet<>(lineStation2.returnAllStationMyId());
+        Collection<String> dup_ID = CollectionUtils.intersection(stationID1, stationID2);
+        Station tmp;
+        for (String id : dup_ID) {
+            JSONObject resLine = new JSONObject();
+            tmp = stationService.findStationById(id);
+            resLine.put("stationName", tmp.getName());
+            resLine.put("stationID", tmp.getMyId());
+            resLine.put("english",tmp.getEnglishname());
+            res.add(resLine);
+        }
+        return res;
     }
 
     @Override
