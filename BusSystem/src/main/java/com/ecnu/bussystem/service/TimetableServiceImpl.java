@@ -70,6 +70,40 @@ public class TimetableServiceImpl implements TimetableService {
     }
 
     @Override
+    public StationTimetable findAllTimetableByIdAndTime(String time, String stationId, String count) {
+        Station station = stationService.findLineOfStationById(stationId);
+        StationTimetable stationTimetable = new StationTimetable();
+
+        if (station == null) {
+            return null;
+        }
+
+        stationTimetable.setStation(station.getName());
+        stationTimetable.setId(stationId);
+
+        for (String line : station.getLines()) {
+            StationTimetable tmp = findTimetableByIdAndTime(time, stationId, line, count);
+
+            if (tmp == null || tmp.getTimetables() == null) {
+                System.out.println(line + " is null");
+                continue;
+            }
+
+            // 对每一条line找到count个数目
+            if (stationTimetable.getTimetables() == null) {
+                stationTimetable.setTimetables(tmp.getTimetables());
+            }
+            else {
+                stationTimetable.getTimetables().addAll(tmp.getTimetables());
+            }
+        }
+
+        stationTimetable.setTimetableCount(stationTimetable.getTimetables().size());
+
+        return stationTimetable;
+    }
+
+    @Override
     public List<StationTimetable> findTimetableByNameAndTime(String time, String stationName, String lineName, String count) {
         List<StationTimetable> stationTimetables = new ArrayList<>();
 
@@ -153,10 +187,6 @@ public class TimetableServiceImpl implements TimetableService {
 
         LineTimetable lineTimetable = new LineTimetable();
         List<StationTimetable> stationTimetables = new ArrayList<>();
-
-        if (!lineName.endsWith("路")) {
-            lineName += "路";
-        }
 
         Query query = new Query();
         query.addCriteria(Criteria.where("routeName").is(lineName));
