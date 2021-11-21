@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/stationLine")
+@RequestMapping("/stationline")
 public class StationLineController {
     @Autowired
     private LineServiceImpl lineService;
@@ -22,7 +22,7 @@ public class StationLineController {
     private StationServiceImpl stationService;
 
     //根据路线的名称返回路线上的站
-    @GetMapping(path = "/stationofpreciseline/{name}")
+    @GetMapping(path = "/station/of/precise/line/{name}")
     public JSONResult<?> findStationOfLineByPreciseName(
             @PathVariable String name
     ) {
@@ -34,7 +34,7 @@ public class StationLineController {
     }
 
     //根据路线的名称模糊搜索返回路线上的站
-    @GetMapping(path = "/stationofvagueline/{name}")
+    @GetMapping(path = "/station/of/vague/line/{name}")
     public JSONResult<?> findStationOfLineByVagueName(
             @PathVariable String name
     ) {
@@ -46,7 +46,7 @@ public class StationLineController {
     }
 
     // 根据站点模糊name查找经过站点的所有线路
-    @GetMapping(path = "/lineofvaguestation/{name}")
+    @GetMapping(path = "/line/of/vague/station/{name}")
     public JSONResult<?> findLineOfStationByVagueName(
             @PathVariable String name
     ) {
@@ -58,12 +58,13 @@ public class StationLineController {
     }
 
     // 找出两个线路的重复站点名并统计数量
-    @GetMapping(path = "/duplicatestationsoflines/{name1}/{name2}")
+
+    @GetMapping(path = "/duplicate/station/of/line/{name1}/{name2}")
     public JSONResult<?> findDuplicateStations(
             @PathVariable String name1,
             @PathVariable String name2
     ) {
-        List<JSONObject>  stations = lineService.findDuplicateStations(name1, name2);
+        List<JSONObject> stations = lineService.findDuplicateStations(name1, name2);
         if (stations == null || stations.size() == 0) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + name1 + "name2" + name2);
         }
@@ -71,7 +72,7 @@ public class StationLineController {
     }
 
     //根据线路数据和首末节点返回线路
-    @GetMapping(path = "/lineofstartansendstation/{routename}:{name1}/{name2}")
+    @GetMapping(path = "/line/of/start/and/end/station/{routename}:{name1}{name2}")
     public JSONResult<?> findAlongStationLineByStartAndEndName(
             @PathVariable String routename,
             @PathVariable String name1,
@@ -84,7 +85,7 @@ public class StationLineController {
         return JSONResult.success(stationLines);
     }
 
-    @GetMapping(path = "/directpathbetweentwostations/{name1}/{name2}")
+    @GetMapping(path = "/direct/path/between/two/station/{name1}{name2}")
     public JSONResult<?>findDirectPathBetweenTwoStations(
             @PathVariable String name1,
             @PathVariable String name2

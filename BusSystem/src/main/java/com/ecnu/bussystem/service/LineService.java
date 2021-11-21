@@ -31,7 +31,7 @@ public interface LineService {
      * @param lineName2 行name2
      * @return {@code List<Map<String, String>>}
      */
-    List<JSONObject>  findDuplicateStations(String lineName1, String lineName2);
+    List<JSONObject> findDuplicateStations(String lineName1, String lineName2);
 
     /**
      * 发现在站逐开始和结束的名字

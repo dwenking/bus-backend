@@ -21,7 +21,7 @@ public class LineController {
     private LineServiceImpl lineService;
 
     // 根据线路精确名称查找线路（指明上行和下行）
-    @GetMapping(path = "/perciselinename/{name}")
+    @GetMapping(path = "/percise/line/name/{name}")
     public JSONResult<?> findLineByPerciseName(
             @PathVariable String name
     ) {
@@ -33,7 +33,7 @@ public class LineController {
     }
 
     //根据线路模糊名称查找线路（不指明上行还是下行）
-    @GetMapping(path = "/vaguelinename/{name}")
+    @GetMapping(path = "/vague/line/name/{name}")
     public JSONResult<?> findLineByVagueName(
             @PathVariable String name
     ) {
@@ -45,7 +45,7 @@ public class LineController {
     }
 
     // 根据站点数量对线路进行排序
-    @GetMapping(path = "/top15moststationsroutes")
+    @GetMapping(path = "/top15/most/station/route")
     public JSONResult<?> findTop15MostStationsRoutes() {
         List<Map<String, String>> mapList = lineService.findTop15MostStationsRoutes();
         if (mapList == null || mapList.size() == 0) {
@@ -54,7 +54,7 @@ public class LineController {
         return JSONResult.success(mapList);
     }
 
-    @GetMapping(path = "/findthenumberofonewaystations")
+    @GetMapping(path = "/find/the/number/of/oneway/station")
     public JSONResult<?> findTheNumberOfOneWayStations() {
         JSONObject object = lineService.findTheNumberOfOneWayStations();
         if (object == null) {
@@ -63,7 +63,7 @@ public class LineController {
         return JSONResult.success(object);
     }
 
-    @GetMapping(path = "/findtypeandnumberoflines")
+    @GetMapping(path = "/find/type/and/number/of/line")
     public JSONResult<?> findTypeAndNumberOfLines() {
         List<JSONObject> jsonObjects = lineService.findTypeAndNumberOfLines();
         if (jsonObjects == null || jsonObjects.size() == 0) {
@@ -73,7 +73,7 @@ public class LineController {
     }
 
     //统计某个线路上每个站点可以换乘的线路，站点根据id查找换乘路线
-    @GetMapping(path = "/findtransferlines/{name}")
+    @GetMapping(path = "/find/transfer/line/{name}")
     public JSONResult<?> findTransferLines(
             @PathVariable String name
     ) {
@@ -95,5 +95,4 @@ public class LineController {
         }
         return JSONResult.success(res);
     }
-
 }

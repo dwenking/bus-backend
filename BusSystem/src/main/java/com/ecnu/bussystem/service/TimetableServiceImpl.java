@@ -72,7 +72,41 @@ public class TimetableServiceImpl implements TimetableService {
             return null;
         }
 
-        StationTimetable stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
+        StationTimetable stationTimetable = new StationTimetable(find.get(0).getStationName(), stationId, find, find.size(), -1);
+
+        return stationTimetable;
+    }
+
+    @Override
+    public StationTimetable findAllTimetableByIdAndTime(String time, String stationId, String count) {
+        Station station = stationService.findLineOfStationById(stationId);
+        StationTimetable stationTimetable = new StationTimetable();
+
+        if (station == null) {
+            return null;
+        }
+
+        stationTimetable.setStation(station.getName());
+        stationTimetable.setId(stationId);
+
+        for (String line : station.getLines()) {
+            StationTimetable tmp = findTimetableByIdAndTime(time, stationId, line, count);
+
+            if (tmp == null || tmp.getTimetables() == null) {
+                System.out.println(line + " is null");
+                continue;
+            }
+
+            // 对每一条line找到count个数目
+            if (stationTimetable.getTimetables() == null) {
+                stationTimetable.setTimetables(tmp.getTimetables());
+            }
+            else {
+                stationTimetable.getTimetables().addAll(tmp.getTimetables());
+            }
+        }
+
+        stationTimetable.setTimetableCount(stationTimetable.getTimetables().size());
 
         return stationTimetable;
     }
@@ -126,7 +160,7 @@ public class TimetableServiceImpl implements TimetableService {
                 timetable.setMinutes(minutes);
             }
 
-            stationTimetable = new StationTimetable(stationId, find.get(0).getStationName(), find, find.size(), -1);
+            stationTimetable = new StationTimetable( find.get(0).getStationName(), stationId, find, find.size(), -1);
         } catch (Exception e) {
             return null;
         }
@@ -140,6 +174,8 @@ public class TimetableServiceImpl implements TimetableService {
 
         // 先在neo4j中查找所有符合name的Station
         List<Station> stationList = stationService.findStationByVagueName(stationName);
+
+        System.out.println(stationList.size());
 
         // 找到每个Station的Timetable
         for (Station station : stationList) {
@@ -159,10 +195,6 @@ public class TimetableServiceImpl implements TimetableService {
 
         LineTimetable lineTimetable = new LineTimetable();
         List<StationTimetable> stationTimetables = new ArrayList<>();
-
-        if (!lineName.endsWith("路")) {
-            lineName += "路";
-        }
 
         Query query = new Query();
         query.addCriteria(Criteria.where("routeName").is(lineName));

@@ -70,7 +70,6 @@ public class StationServiceImpl implements StationService {
         return allList;
     }
 
-
     private List<Station> generateLineOfStationFromJson(Session session, List<String> mapStrings) {
         List<Station> alllist = new ArrayList<>();
         String cypher;
@@ -87,7 +86,7 @@ public class StationServiceImpl implements StationService {
             List<Record> records = result.list();
             for (Record record : records) {
                 Value value = record.get("COLLECT(n.name)");
-                System.out.println("value: " + value);
+                // System.out.println("value: " + value);
                 // 类型转换
                 station.setLines((List<String>) (List) value.asList());
             }
@@ -99,8 +98,7 @@ public class StationServiceImpl implements StationService {
         return alllist;
     }
 
-    @Override
-    public List<String> getAllStationFromVagueName(String stationName) {
+    private List<String> getAllStationFromVagueName(String stationName) {
         List<String> stations = new ArrayList<>();
         String station1;
         String station2;
@@ -123,6 +121,23 @@ public class StationServiceImpl implements StationService {
         return stations;
     }
 
+    @Override
+    public Station findLineOfStationById(String stationId) {
+        List<Station> alllist;
+        try (Session session = neo4jDriver.session()) {
+            // 找到stationId对应的node
+            String cypher = String.format("MATCH (n:vStations) WHERE n.myId='%s' RETURN n", stationId);
+            Result result = session.run(cypher);
+
+            List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+            alllist = generateLineOfStationFromJson(session, mapStrings);
+
+            if (alllist == null || alllist.size() < 1) {
+                return null;
+            }
+        }
+        return alllist.get(0);
+    }
 
     @Override
     public List<Map<String, Object>> findTop15StationPairs() {

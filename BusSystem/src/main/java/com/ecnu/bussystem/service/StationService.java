@@ -18,8 +18,8 @@ public interface StationService {
     // 根据站点模糊name查找经过站点的所有线路
     List<Station> findLineOfStationByVagueName(String stationName);
 
-    List<String> getAllStationFromVagueName(String stationName);
-
+    // 根据站点id查找经过站点的所有线路
+    Station findLineOfStationById(String stationId);
     /**
      * 找到两个站之间直达线路最多的两个站及线路数量
      *
