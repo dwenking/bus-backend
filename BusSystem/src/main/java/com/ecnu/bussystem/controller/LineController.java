@@ -71,6 +71,7 @@ public class LineController {
         }
         return JSONResult.success(jsonObjects);
     }
+
     //统计某个线路上每个站点可以换乘的线路，站点根据id查找换乘路线
     @GetMapping(path = "/findtransferlines/{name}")
     public JSONResult<?> findTransferLines(
@@ -83,5 +84,16 @@ public class LineController {
         return JSONResult.success(res);
     }
 
+    // 计算某条线路的非重复系数
+    @GetMapping(path = "/notrepeating/{name}")
+    public JSONResult<?> findNotRepeating(
+            @PathVariable String name
+    ) {
+        JSONObject res = lineService.findNotRepeating(name);
+        if (res == null || res.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(res);
+    }
 
 }

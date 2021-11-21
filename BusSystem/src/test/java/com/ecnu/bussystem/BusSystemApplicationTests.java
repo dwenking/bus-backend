@@ -140,12 +140,13 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTop15MostStationsRoutes() {
-        System.out.println(lineService.findTop15MostStationsRoutes());
+        List<Map<String, String>> res= lineService.findTop15MostStationsRoutes();
+        System.out.println(res);
     }
 
     @Test
     void testFindDuplicateStations() {
-        JSONObject res = lineService.findDuplicateStations("523路上行", "523路下行");
+        List<JSONObject> res = lineService.findDuplicateStations("15路上行", "30路下行");
         if (res == null) {
             System.out.println("数据不存在");
             return;
@@ -198,8 +199,20 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testFindTransferLines(){
-        List<JSONObject> res = lineService.findTransferLines("1路上行");
+    void testFindTransferLines() {
+        List<JSONObject> res = lineService.findTransferLines("261路上行");
         System.out.println(res);
+    }
+
+    @Test
+    void testNotRepeating() {
+        JSONObject res = lineService.findNotRepeating("N12路上行");
+        System.out.println(res);
+        JSONObject res2 = lineService.findNotRepeating("G95路上行");
+        System.out.println(res2);
+        JSONObject res4 = lineService.findNotRepeating("30路上行");
+        System.out.println(res4);
+        JSONObject res3 = lineService.findNotRepeating("208路上行");
+        System.out.println(res3);
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -174,13 +175,14 @@ public class LineServiceImpl implements LineService {
         return stationLines;
     }
 
+    /////////////////
     @Override
     public List<Map<String, String>> findTop15MostStationsRoutes() {
         List<Map<String, String>> mapList = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
             // key为routename-number
             String cypher = String.format("MATCH (n:vStations)-[]->(l:vLines) " +
-                    "with l.name as routename, count(n.id) as number " +
+                    "with l.name as routename, count(n.myId) as number " +
                     "order by number DESC limit 15 return routename,number");
             Result result = session.run(cypher);
             List<Record> records = result.list();
@@ -198,24 +200,32 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public JSONObject findDuplicateStations(String lineName1, String lineName2) {
-        JSONObject map = new JSONObject();
-        map.put("line1", lineName1);
-        map.put("line2", lineName2);
+    public List<JSONObject> findDuplicateStations(String lineName1, String lineName2) {
+        List<JSONObject> res = new ArrayList<>();
         StationLine lineStation1 = this.findStationOfLineByPreciseName(lineName1);
         StationLine lineStation2 = this.findStationOfLineByPreciseName(lineName2);
         if (lineStation1 == null || lineStation2 == null) {
-            map.put("number", 0);
-            map.put("stations", null);
-            return map;
+            JSONObject resLine = new JSONObject();
+            resLine.put("stationName", null);
+            resLine.put("stationID", null);
+            resLine.put("english", null);
+            res.add(resLine);
+            return res;
         }
-        Set<String> stationNames1 = new HashSet<>(lineStation1.returnAllStationNames());
-        Set<String> stationNames2 = new HashSet<>(lineStation2.returnAllStationNames());
-        Collection<String> res = CollectionUtils.intersection(stationNames1, stationNames2);
-        int cnt = res.size();
-        map.put("number", cnt);
-        map.put("stations", new ArrayList<>(res));
-        return map;
+        //修改为：重复站点名由ID区分
+        Set<String> stationID1 = new HashSet<>(lineStation1.returnAllStationMyId());
+        Set<String> stationID2 = new HashSet<>(lineStation2.returnAllStationMyId());
+        Collection<String> dup_ID = CollectionUtils.intersection(stationID1, stationID2);
+        Station tmp;
+        for (String id : dup_ID) {
+            JSONObject resLine = new JSONObject();
+            tmp = stationService.findStationById(id);
+            resLine.put("stationName", tmp.getName());
+            resLine.put("stationID", tmp.getMyId());
+            resLine.put("english", tmp.getEnglishname());
+            res.add(resLine);
+        }
+        return res;
     }
 
     @Override
@@ -417,7 +427,7 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             // 找到单行的，路线lineNumber相同的路线对
             String cypher = String.format("MATCH (n:vLines) \n" +
-                    "with n.type as type, count(n) as number\n" +
+                    "with n.type as type, count(distinct n.lineNumber) as number\n" +
                     "return type, number order by number desc");
             Result result = session.run(cypher);
             List<Record> records = result.list();
@@ -479,5 +489,58 @@ public class LineServiceImpl implements LineService {
         resLine2.put("TotalTransLineNumber", totalTransferLine.size());
         res.add(resLine2);
         return res;
+    }
+
+    @Override
+    public JSONObject findNotRepeating(String routeName) {
+        JSONObject res = new JSONObject();
+        StationLine stationLine = this.findStationOfLineByPreciseName(routeName);
+        List<Station> stations = stationLine.getStations();
+        int cnt = stations.size();
+        //用nums存储每两个站点之间的非重复系数，根据id查找站点间的线路，并且区分方向
+        List<Double> nums = new ArrayList<>();
+        for (int i = 0; i < cnt - 1; i++) {
+            String id1 = stations.get(i).getMyId();
+            for (int j = i + 1; j < cnt; j++) {
+                String id2 = stations.get(j).getMyId();
+                int routes = this.findDirectPathWithDirection(id1, id2);
+                nums.add(1.0 / routes);
+            }
+        }
+        //用reduce函数求非重复系数和
+        Double average = nums.stream().reduce(Double::sum).orElse(0.0);
+        //求平均非重复系数并保留两位小数
+        average = average / nums.size();
+        BigDecimal b = new BigDecimal(average);
+        double ave = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        res.put("lineName", routeName);
+        res.put("number", ave);
+        return res;
+    }
+
+    public int findDirectPathWithDirection(String id1, String id2) {
+        int cnt = 0;
+        List<String> routesName1 = stationRepository.findLineByStationId(id1);
+        List<String> routesName2 = stationRepository.findLineByStationId(id2);
+        List<String> commonRoutes = new ArrayList<>(CollectionUtils.intersection(routesName1, routesName2));
+        for (String route : commonRoutes) {
+            StationLine stationLine = this.findStationOfLineByPreciseName(route);
+            List<Station> stationList = stationLine.getStations();
+            Integer indx1 = -1;
+            Integer indx2 = -1;
+            for (int i = 0; i < stationList.size(); i++) {
+                if (stationList.get(i).getMyId().equals(id1)) {
+                    indx1 = i;
+                }
+                if (stationList.get(i).getMyId().equals(id2)) {
+                    indx2 = i;
+                }
+            }
+            //从id1到id2，线路数加1
+            if (indx1 < indx2) {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 }

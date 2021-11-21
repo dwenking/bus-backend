@@ -7,6 +7,10 @@ import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.RuntimeTable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
 import com.ecnu.bussystem.entity.timetable.Timetable;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -21,6 +26,9 @@ import java.util.*;
 public class TimetableServiceImpl implements TimetableService {
     @Autowired
     MongoTemplate mongoTemplate;
+
+    @Resource
+    Driver neo4jDriver;
 
     @Autowired
     StationServiceImpl stationService;
@@ -231,26 +239,22 @@ public class TimetableServiceImpl implements TimetableService {
     // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
     @Override
     public List<JSONObject> findLinesOfLongestRuntime() {
+        //修改为：根据timetable里的时间计算，得到运行时间
         List<JSONObject> res = new ArrayList<>();
-        try {
-            Query query = new Query();
-            query.with(Sort.by(Sort.Direction.DESC, "rate"));
-            query.limit(15);
-            List<RuntimeTable> find = mongoTemplate.find(query, RuntimeTable.class, "runtime");
-            if (find == null || find.size() == 0) {
-                System.out.println("出错啦！！");
-                return null;
+        try(Session session = neo4jDriver.session()){
+            String cypher = String.format("MATCH (n:vStations)-[r:vNEAR]->(m:vStations) " +
+                    "with r.name as routename, sum(r.time) as runtime " +
+                    "RETURN routename,runtime order by runtime DESC");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for(Record record : records){
+                Map<String,Object> map = record.asMap();
+                JSONObject json = new JSONObject();
+                for(String cur : map.keySet()){
+                    json.put(cur, map.get(cur).toString());
+                }
+                res.add(json);
             }
-            for (RuntimeTable tmp : find) {
-                JSONObject resline = new JSONObject();
-                resline.put("routeName", tmp.getName());
-                resline.put("runtime", tmp.getRuntime());
-                resline.put("firstBus", tmp.getFirstBus());
-                resline.put("lastBus", tmp.getLastBus());
-                res.add(resline);
-            }
-        } catch (Exception e) {
-            return null;
         }
         return res;
     }

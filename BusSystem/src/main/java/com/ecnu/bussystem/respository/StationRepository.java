@@ -24,4 +24,9 @@ public interface StationRepository extends Neo4jRepository<Station, Long> {
     @Query("match (n:vStations) where n.name contains \"终点站\" return distinct n.name")
     List<String> findEndStations();
 
+    @Query("match (c:vStations)-[]->(n:vLines) where $lineName = n.name return c")
+    List<Station> findStationByLine(String lineName);
+
+    @Query("MATCH (n:vStations)-[]->(l:vLines) where n.myId = $id  RETURN l.name")
+    List<String> findLineByStationId(String id);
 }
