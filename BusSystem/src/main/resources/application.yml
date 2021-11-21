@@ -12,4 +12,4 @@ spring:
     uri: bolt://localhost:7687
 
 server:
-  port: 8080
+  port: 9090

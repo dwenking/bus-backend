@@ -36,4 +36,11 @@ public class StationLine implements Comparable{
         }
         return stationNameList;
     }
+    public List<String> returnAllStationMyId(){
+        List<String> stationNameList=new ArrayList<>();
+        for(Station station:stations){
+            stationNameList.add(station.getMyId());
+        }
+        return stationNameList;
+    }
 }

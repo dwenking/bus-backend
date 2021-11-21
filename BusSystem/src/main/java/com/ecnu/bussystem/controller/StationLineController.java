@@ -58,14 +58,14 @@ public class StationLineController {
     }
 
     // 找出两个线路的重复站点名并统计数量
-    @GetMapping(path = "/duplicatestationsoflines/{name1}{name2}")
+    @GetMapping(path = "/duplicatestationsoflines/{name1}/{name2}")
     public JSONResult<?> findDuplicateStations(
-            @RequestParam("name1") String lineName1,
-            @RequestParam("name2") String lineName2
+            @PathVariable String name1,
+            @PathVariable String name2
     ) {
-        JSONObject stations = lineService.findDuplicateStations(lineName1, lineName2);
+        List<JSONObject> stations = lineService.findDuplicateStations(name1, name2);
         if (stations == null || stations.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + lineName1 + "name2" + lineName2);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + name1 + "name2" + name2);
         }
         return JSONResult.success(stations);
     }

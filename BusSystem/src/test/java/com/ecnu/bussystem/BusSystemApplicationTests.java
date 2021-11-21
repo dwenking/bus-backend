@@ -145,7 +145,7 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindDuplicateStations() {
-        JSONObject res = lineService.findDuplicateStations("523路上行", "523路下行");
+        List<JSONObject> res = lineService.findDuplicateStations("30路下行", "15路上行");
         if (res == null) {
             System.out.println("数据不存在");
             return;
