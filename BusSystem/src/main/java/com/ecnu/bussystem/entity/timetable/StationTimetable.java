@@ -13,6 +13,7 @@ public class StationTimetable implements Comparable {
     private String station;
     private String id;
     private List<Timetable> timetables;
+    // 该实例的timetable数目
     private int timetableCount = 0;
     // 该station在整条路线上的顺序
     private Integer stationIndex = -1;
