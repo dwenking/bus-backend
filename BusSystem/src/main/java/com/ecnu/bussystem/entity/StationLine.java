@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StationLine implements Comparable{
+public class StationLine implements Comparable {
     private String name;
     private Boolean directional;
     private List<Station> stations;
@@ -18,8 +18,8 @@ public class StationLine implements Comparable{
 
     @Override
     public int compareTo(Object o) {
-        StationLine stationLine=(StationLine) o;
-        if(this.getName().compareTo(stationLine.getName())>0) {
+        StationLine stationLine = (StationLine) o;
+        if (this.getName().compareTo(stationLine.getName()) > 0) {
             return 1;
         } else {
             return -1;
@@ -29,18 +29,20 @@ public class StationLine implements Comparable{
     public boolean isValid() {
         return (name != null) && (!name.equals("")) && (stations != null) && (stations.size() != 0);
     }
-    public List<String> returnAllStationNames(){
-        List<String> stationNameList=new ArrayList<>();
-        for(Station station:stations){
+
+    public List<String> returnAllStationNames() {
+        List<String> stationNameList = new ArrayList<>();
+        for (Station station : stations) {
             stationNameList.add(station.getName());
         }
         return stationNameList;
     }
-    public List<String> returnAllStationMyId(){
-        List<String> stationNameList=new ArrayList<>();
-        for(Station station:stations){
-            stationNameList.add(station.getMyId());
+
+    public List<String> returnAllStationMyId() {
+        List<String> stationIdList = new ArrayList<>();
+        for (Station station : stations) {
+            stationIdList.add(station.getMyId());
         }
-        return stationNameList;
+        return stationIdList;
     }
 }
