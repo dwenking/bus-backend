@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 @Service
@@ -174,6 +175,7 @@ public class LineServiceImpl implements LineService {
         return stationLines;
     }
 
+    /////////////////
     @Override
     public List<Map<String, String>> findTop15MostStationsRoutes() {
         List<Map<String, String>> mapList = new ArrayList<>();
@@ -206,7 +208,7 @@ public class LineServiceImpl implements LineService {
             JSONObject resLine = new JSONObject();
             resLine.put("stationName", null);
             resLine.put("stationID", null);
-            resLine.put("english",null);
+            resLine.put("english", null);
             res.add(resLine);
             return res;
         }
@@ -220,7 +222,7 @@ public class LineServiceImpl implements LineService {
             tmp = stationService.findStationById(id);
             resLine.put("stationName", tmp.getName());
             resLine.put("stationID", tmp.getMyId());
-            resLine.put("english",tmp.getEnglishname());
+            resLine.put("english", tmp.getEnglishname());
             res.add(resLine);
         }
         return res;
@@ -566,13 +568,11 @@ public class LineServiceImpl implements LineService {
             // 更新与vLines关系
             String type = lineRepository.deleteStationOfLine(oldId, name);
             System.out.println(type);
-            if ("begin".equals(type)){
+            if ("begin".equals(type)) {
                 lineRepository.addStationOfBeginLine(newId, name);
-            }
-            else if ("end".equals(type)) {
+            } else if ("end".equals(type)) {
                 lineRepository.addStationOfEndLine(newId, name);
-            }
-            else {
+            } else {
                 lineRepository.addStationOfInLine(newId, name);
             }
 
@@ -589,5 +589,58 @@ public class LineServiceImpl implements LineService {
 
         stationLine = findStationOfLineByPreciseName(name);
         return stationLine;
+    }
+
+    @Override
+    public JSONObject findNotRepeating(String routeName) {
+        JSONObject res = new JSONObject();
+        StationLine stationLine = this.findStationOfLineByPreciseName(routeName);
+        List<Station> stations = stationLine.getStations();
+        int cnt = stations.size();
+        //用nums存储每两个站点之间的非重复系数，根据id查找站点间的线路，并且区分方向
+        List<Double> nums = new ArrayList<>();
+        for (int i = 0; i < cnt - 1; i++) {
+            String id1 = stations.get(i).getMyId();
+            for (int j = i + 1; j < cnt; j++) {
+                String id2 = stations.get(j).getMyId();
+                int routes = this.findDirectPathWithDirection(id1, id2);
+                nums.add(1.0 / routes);
+            }
+        }
+        //用reduce函数求非重复系数和
+        Double average = nums.stream().reduce(Double::sum).orElse(0.0);
+        //求平均非重复系数并保留两位小数
+        average = average / nums.size();
+        BigDecimal b = new BigDecimal(average);
+        double ave = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+        res.put("lineName", routeName);
+        res.put("number", ave);
+        return res;
+    }
+
+    public int findDirectPathWithDirection(String id1, String id2) {
+        int cnt = 0;
+        List<String> routesName1 = stationRepository.findLineByStationId(id1);
+        List<String> routesName2 = stationRepository.findLineByStationId(id2);
+        List<String> commonRoutes = new ArrayList<>(CollectionUtils.intersection(routesName1, routesName2));
+        for (String route : commonRoutes) {
+            StationLine stationLine = this.findStationOfLineByPreciseName(route);
+            List<Station> stationList = stationLine.getStations();
+            Integer indx1 = -1;
+            Integer indx2 = -1;
+            for (int i = 0; i < stationList.size(); i++) {
+                if (stationList.get(i).getMyId().equals(id1)) {
+                    indx1 = i;
+                }
+                if (stationList.get(i).getMyId().equals(id2)) {
+                    indx2 = i;
+                }
+            }
+            //从id1到id2，线路数加1
+            if (indx1 < indx2) {
+                cnt++;
+            }
+        }
+        return cnt;
     }
 }

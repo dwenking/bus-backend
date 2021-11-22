@@ -114,4 +114,16 @@ public class LineController {
         }
         return JSONResult.success(stationLine);
     }
+
+    // 计算某条线路的非重复系数
+    @GetMapping(path = "/notrepeating/{name}")
+    public JSONResult<?> findNotRepeating(
+            @PathVariable String name
+    ) {
+        JSONObject res = lineService.findNotRepeating(name);
+        if (res == null || res.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(res);
+    }
 }

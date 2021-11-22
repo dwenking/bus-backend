@@ -71,14 +71,19 @@ public interface LineService {
      */
     JSONObject findTheNumberOfOneWayStations();
 
-
     /**
      * 按照路线的type分组计算数量
      *
      * @return {@code List<JSONObject>}
      */
     List<JSONObject> findTypeAndNumberOfLines();
-    
+
+    /**
+     * 统计某个线路上每个站点可以换乘的线路，站点根据id查找换乘路线
+     *
+     * @param routeName name
+     * @return {@code List<JSONObject>}
+     */
     List<JSONObject> findTransferLines(String routeName);
 
     // 删除某条线路并删除只有该线路经过的站点
@@ -89,5 +94,13 @@ public interface LineService {
 
     // 替换某条线路上的站点，并返回新的沿途站点
     StationLine replaceStationInLine(String name, String oldId, String newId);
+
+    /**
+     * 计算某条线路的非重复系数
+     *
+     * @param routeName name
+     * @return {@code JSONObject}
+     */
+    JSONObject findNotRepeating(String routeName);
 }
 

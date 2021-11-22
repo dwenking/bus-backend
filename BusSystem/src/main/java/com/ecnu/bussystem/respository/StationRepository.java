@@ -52,4 +52,10 @@ public interface StationRepository extends Neo4jRepository<Station, Long> {
             "CREATE (n)-[r1:vNEAR {name: r.name, lineNumber: r.lineNumber, time: r.time, weight:r.weight}]->(m) " +
             "RETURN r1.name")
     List<String> addLineAfterStation(String after, String newId, String oldId, String line);
+
+    @Query("match (c:vStations)-[]->(n:vLines) where $lineName = n.name return c")
+    List<Station> findStationByLine(String lineName);
+
+    @Query("MATCH (n:vStations)-[]->(l:vLines) where n.myId = $id  RETURN l.name")
+    List<String> findLineByStationId(String id);
 }
