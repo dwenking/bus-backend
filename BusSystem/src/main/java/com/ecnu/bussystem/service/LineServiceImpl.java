@@ -79,7 +79,7 @@ public class LineServiceImpl implements LineService {
         stationLine.setName(routeName);
 
         List<Station> stations = new ArrayList<>();
-        Station beginStation = null;
+        Station beginStation;
         Station endStation = null;
         Line lineNode = null;
 
@@ -362,53 +362,48 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public JSONObject findTheNumberOfOneWayStations() {
-        //存储单行站的数量和名称
-        JSONObject objects = new JSONObject();
-        Set<String> oneWayStationNameSet = new HashSet<>();
-        //存储下方的单行路线的名称
-        List<String> pairList = new ArrayList<>();
-        try (Session session = neo4jDriver.session()) {
-            // 找到单行的，路线lineNumber相同的路线对
-            String cypher = String.format("match(n:vLines),(m:vLines) where n.lineNumber=m.lineNumber and n.name<m.name \n" +
-                    "with n.name as line1,m.name as line2\n" +
-                    "return line1,line2");
-            Result result = session.run(cypher);
-            List<Record> records = result.list();
-            for (Record record : records) {
-                //将records映射为map对象，按照line1，line2的顺序压入pairlist中
-                Map<String, Object> objectMap = record.asMap();
-                for (String cur : objectMap.keySet()) {
-                    pairList.add(objectMap.get(cur).toString());
-                }
-            }
-        }
-        //如果不存在单行的线路
-        if (pairList.size() == 0) {
+    public List<JSONObject> findOneWayStationsByRouteName(String name) {
+        //存储这条线路上的单行站的名称
+        List<JSONObject> objectList=new ArrayList<>();
+        List<Line> linelist = this.findLineByVagueName(name);
+        if (linelist == null || linelist.size() <= 1) {
             return null;
         }
-        //遍历所有的线路
-        for (int i = 0; i < pairList.size(); i = i + 2) {
-            String line1name = pairList.get(i);
-            String line2name = pairList.get(i + 1);
-            //取两条线路的stationline
-            StationLine stationLine1 = this.findStationOfLineByPreciseName(line1name);
-            StationLine stationLine2 = this.findStationOfLineByPreciseName(line2name);
-            if (stationLine1 == null || stationLine2 == null || stationLine1.getStations() == null || stationLine2.getStations() == null) {
-                continue;
+        Set<String> nameSet1=new HashSet<>();
+        Set<String> nameSet2=new HashSet<>();
+        for (int i = 0; i < linelist.size(); i++) {
+            String routeName = linelist.get(i).getName();
+            StationLine stationLine = this.findStationOfLineByPreciseName(routeName);
+            if (stationLine == null) {
+                break;
             }
-            //获得两条线路上站的名称
-            Set<String> line1list = new HashSet<>(stationLine1.returnAllStationNames());
-            Set<String> line2list = new HashSet<>(stationLine2.returnAllStationNames());
-            //取站点名称的并集
-            Collection<String> allStationName = CollectionUtils.union(line1list, line2list);
-            Collection<String> intersectionStationName = CollectionUtils.intersection(line1list, line2list);
-            Collection<String> thisRouteOneWayStations = CollectionUtils.subtract(allStationName, intersectionStationName);
-            oneWayStationNameSet.addAll(thisRouteOneWayStations);
+            List<Station> stations = stationLine.getStations();
+            if (stations == null || stations.size() == 0) {
+                break;
+            }
+            Set<String> stationNameSet=new HashSet<>();
+            for (int j = 0; j < stations.size(); j++) {
+                stationNameSet.add(stations.get(j).getName());
+            }
+            if(i==0){
+                nameSet1.addAll(stationNameSet);
+            }
+            else {
+                nameSet2.addAll(stationNameSet);
+            }
         }
-        objects.put("stations", new ArrayList<>(oneWayStationNameSet));
-        objects.put("number", oneWayStationNameSet.size());
-        return objects;
+        Collection<String> allStationName = CollectionUtils.union(nameSet1, nameSet2);
+        Collection<String> intersectionStationName = CollectionUtils.intersection(nameSet1, nameSet2);
+        List<String> thisRouteOneWayStations = (List<String>) CollectionUtils.subtract(allStationName, intersectionStationName);
+        if(thisRouteOneWayStations==null||thisRouteOneWayStations.size()==0){
+            return null;
+        }
+        for(int i=0;i<thisRouteOneWayStations.size();i++){
+            JSONObject objects = new JSONObject();
+            objects.put("name",thisRouteOneWayStations.get(i));
+            objectList.add(objects);
+        }
+        return objectList;
     }
 
     @Override

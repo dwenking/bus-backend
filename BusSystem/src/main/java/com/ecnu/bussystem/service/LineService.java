@@ -8,27 +8,51 @@ import java.util.List;
 import java.util.Map;
 
 public interface LineService {
-    // 根据线路精确名称查找线路（指明上行和下行）
+    /**
+     * 根据线路精确名称查找线路（指明上行和下行）
+     *
+     * @param routeName 路线名称
+     * @return {@code Line}
+     */
     Line findLineByPerciseName(String routeName);
 
-    // 根据线路模糊名称查找线路（不指明上行还是下行）
+    /**
+     * 根据线路模糊名称查找线路（不指明上行还是下行）
+     *
+     * @param routeName 路线名称
+     * @return {@code List<Line>}
+     */
     List<Line> findLineByVagueName(String routeName);
 
-    // 根据线路的名称返回路线上的站
+    /**
+     * 根据线路的名称返回路线上的站
+     *
+     * @param routeName 路线名称
+     * @return {@code StationLine}
+     */
     StationLine findStationOfLineByPreciseName(String routeName);
 
-    // 根据模糊路线的名称返回路线上的站
+    /**
+     * 根据模糊路线的名称返回路线上的站
+     *
+     * @param routeName 路线名称
+     * @return {@code List<StationLine>}
+     */
     List<StationLine> findStationOfLineByVagueName(String routeName);
 
-    // 根据站点数量对线路进行排序
+    /**
+     * 根据站点数量对线路进行排序
+     *
+     * @return {@code List<Map<String, String>>}
+     */
     List<Map<String, String>> findTop15MostStationsRoutes();
 
 
     /**
      * 找到两个线路之间重复的站点数
      *
-     * @param lineName1 行name1
-     * @param lineName2 行name2
+     * @param lineName1 线路名称1
+     * @param lineName2 线路名称2
      * @return {@code List<Map<String, String>>}
      */
     List<JSONObject> findDuplicateStations(String lineName1, String lineName2);
@@ -67,9 +91,10 @@ public interface LineService {
     /**
      * 找到所有单行站的数量，根据上下行的路线上的站进行对比
      *
-     * @return {@code List<Map<String, String>>}
+     * @param name 线路名称
+     * @return {@code JSONObject}
      */
-    JSONObject findTheNumberOfOneWayStations();
+    List<JSONObject> findOneWayStationsByRouteName(String name);
 
     /**
      * 按照路线的type分组计算数量
@@ -79,9 +104,9 @@ public interface LineService {
     List<JSONObject> findTypeAndNumberOfLines();
 
     /**
-     * 统计某个线路上每个站点可以换乘的线路，站点根据id查找换乘路线
+     * 统计某个线路上每个站点可以换乘的线路
      *
-     * @param routeName name
+     * @param routeName 线路名称
      * @return {@code List<JSONObject>}
      */
     List<JSONObject> findTransferLines(String routeName);

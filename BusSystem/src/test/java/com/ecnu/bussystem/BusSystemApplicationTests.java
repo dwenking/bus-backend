@@ -156,7 +156,8 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTheNumberOfOneWayStations() {
-        JSONObject res = lineService.findTheNumberOfOneWayStations();
+        String name="208路";
+        List<JSONObject> res = lineService.findOneWayStationsByRouteName(name);
         if (res == null) {
             System.out.println("数据不存在");
             return;
