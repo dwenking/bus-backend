@@ -216,4 +216,12 @@ class BusSystemApplicationTests {
         JSONObject res3 = lineService.findNotRepeating("208路上行");
         System.out.println(res3);
     }
+
+    @Test
+    void testfindShortestPathById(){
+        String id1="16115";
+        String id2="14768";
+        JSONObject jsonObject=lineService.findShortestPathById(id1,id2);
+    }
+
 }
