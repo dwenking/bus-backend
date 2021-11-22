@@ -127,5 +127,8 @@ public interface LineService {
      * @return {@code JSONObject}
      */
     JSONObject findNotRepeating(String routeName);
+
+
+    JSONObject findShortestPathById(String id1, String id2);
 }
 
