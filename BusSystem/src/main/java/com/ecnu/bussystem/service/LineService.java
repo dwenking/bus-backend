@@ -80,5 +80,14 @@ public interface LineService {
     List<JSONObject> findTypeAndNumberOfLines();
     
     List<JSONObject> findTransferLines(String routeName);
+
+    // 删除某条线路并删除只有该线路经过的站点
+    JSONObject deleteLineByPerciseName(String name);
+
+    // 恢复某条线路并恢复只有该线路经过的站点
+    JSONObject restoreLineByPerciseName(String name);
+
+    // 替换某条线路上的站点，并返回新的沿途站点
+    StationLine replaceStationInLine(String name, String oldId, String newId);
 }
 

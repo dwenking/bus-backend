@@ -37,9 +37,13 @@ public class TimetableServiceImpl implements TimetableService {
             return null;
         }
 
+        if (lineService.findLineByPerciseName(lineName) == null) {
+            return null;
+        }
+
         Query query = new Query();
         query.addCriteria(Criteria.where("stationID").is(stationId));
-        query.addCriteria(Criteria.where("routeName").in(lineName, lineName + "上行", lineName + "下行", lineName + "路上行", lineName + "路下行"));
+        query.addCriteria(Criteria.where("routeName").is(lineName));
         query.addCriteria(Criteria.where("passTime").gte(time));
         query.with(Sort.by(Sort.Direction.ASC, "passTime"));
         query.limit(Integer.parseInt(count));
@@ -85,7 +89,6 @@ public class TimetableServiceImpl implements TimetableService {
             StationTimetable tmp = findTimetableByIdAndTime(time, stationId, line, count);
 
             if (tmp == null || tmp.getTimetables() == null) {
-                System.out.println(line + " is null");
                 continue;
             }
 
@@ -106,6 +109,10 @@ public class TimetableServiceImpl implements TimetableService {
     @Override
     public List<StationTimetable> findTimetableByNameAndTime(String time, String stationName, String lineName, String count) {
         List<StationTimetable> stationTimetables = new ArrayList<>();
+
+        if (lineService.findLineByPerciseName(lineName) == null) {
+            return null;
+        }
 
         // 先在neo4j中查找所有符合name的Station
         List<Station> stationList = stationService.findStationByVagueName(stationName);
@@ -144,8 +151,15 @@ public class TimetableServiceImpl implements TimetableService {
                 return null;
             }
 
-            // Timetable里需要增加一个字段minutes，显示几分钟后到站
-            for (Timetable timetable : find) {
+            // 删除在neo4j里被删除的line
+            Iterator<Timetable> it = find.iterator();
+            while (it.hasNext()) {
+                Timetable timetable = it.next();
+
+                if (lineService.findLineByPerciseName(timetable.getRouteName()) == null) {
+                    it.remove();
+                }
+
                 String passTime = timetable.getPassTime();
                 Date tmp = formatter.parse(passTime);
                 int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
@@ -181,7 +195,7 @@ public class TimetableServiceImpl implements TimetableService {
 
     @Override
     public LineTimetable findTimetableByName(String lineName) {
-        if (lineName == null) {
+        if (lineName == null || lineService.findLineByPerciseName(lineName) == null) {
             return null;
         }
 

@@ -488,4 +488,106 @@ public class LineServiceImpl implements LineService {
         res.add(resLine2);
         return res;
     }
+
+    @Override
+    public JSONObject deleteLineByPerciseName(String name) {
+        JSONObject res= new JSONObject();
+
+        String line = lineRepository.deleteLineByPerciseName(name);
+        if (line == null || "".equals(line)) {
+            return null;
+        }
+
+        // 删除只有这一条线路的站点
+        List<String> stations = stationRepository.deleteStationWithNoLine();
+
+        res.put("line", line);
+        if (stations != null && stations.size() > 0) {
+            res.put("stations", stations);
+        }
+
+        return res;
+    }
+
+    @Override
+    public JSONObject restoreLineByPerciseName(String name) {
+        JSONObject res= new JSONObject();
+
+        String line = lineRepository.restoreLineByPerciseName(name);
+        if (line == null || "".equals(line)) {
+            return null;
+        }
+
+        // 恢复只有这一条线路的站点
+        List<String> stations = stationRepository.restoreStationInLine(line);
+
+        res.put("line", line);
+        if (stations != null && stations.size() > 0) {
+            res.put("stations", stations);
+        }
+
+        return res;
+    }
+
+    @Override
+    public StationLine replaceStationInLine(String name, String oldId, String newId) {
+        StationLine stationLine = null;
+        Station before = null, after = null;
+        String cypher;
+        Result result;
+
+        try (Session session = neo4jDriver.session()) {
+            // 找到before的node
+            cypher = String.format("MATCH (n:vStations)-[r:vNEAR]->(m:vStations) WHERE m.myId='%s' AND r.name='%s' RETURN n", oldId, name);
+            result = session.run(cypher);
+
+            try {
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                before = JSONObject.parseObject(mapStrings.get(0), Station.class);
+            } catch (Exception e) {
+                System.out.println("没有找到before node");
+            }
+
+            // 找到after的node
+            cypher = String.format("MATCH (m:vStations)-[r:vNEAR]->(n:vStations) WHERE m.myId='%s' AND r.name='%s' RETURN n", oldId, name);
+            result = session.run(cypher);
+
+            try {
+                List<String> mapStrings = Neo4jUtil.getJsonStringFromNodeResult(result);
+                after = JSONObject.parseObject(mapStrings.get(0), Station.class);
+            } catch (Exception e) {
+                System.out.println("没有找到after node");
+            }
+
+            if (before == null && after == null) {
+                return null;
+            }
+
+            // 更新与vLines关系
+            String type = lineRepository.deleteStationOfLine(oldId, name);
+            System.out.println(type);
+            if ("begin".equals(type)){
+                lineRepository.addStationOfBeginLine(newId, name);
+            }
+            else if ("end".equals(type)) {
+                lineRepository.addStationOfEndLine(newId, name);
+            }
+            else {
+                lineRepository.addStationOfInLine(newId, name);
+            }
+
+            // 更新与before、after关系
+            if (before != null) {
+                stationRepository.addLineBeforeStation(before.getMyId(), newId, oldId, name);
+                stationRepository.deleteLineBetweenStation(before.getMyId(), oldId, name);
+            }
+            if (after != null) {
+                stationRepository.addLineAfterStation(after.getMyId(), newId, oldId, name);
+                stationRepository.deleteLineBetweenStation(oldId, after.getMyId(), name);
+            }
+        }
+
+        stationLine = findStationOfLineByPreciseName(name);
+        return stationLine;
+    }
 }

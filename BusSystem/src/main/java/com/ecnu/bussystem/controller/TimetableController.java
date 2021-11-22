@@ -20,7 +20,7 @@ public class TimetableController {
     TimetableServiceImpl timetableService;
 
     // 根据站点id、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetable/for/id/{id}/{line}/{time}/{count}")
+    @GetMapping(path = "/id/{id}/{line}/{time}/{count}")
     public JSONResult<?> findTimetableByIdAndTime(
             @PathVariable(required = true) String id,
             @PathVariable(required = true) String line,
@@ -35,7 +35,7 @@ public class TimetableController {
     }
 
     // 根据站点name、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetable/for/name/{name}/{line}/{time}/{count}")
+    @GetMapping(path = "/name/{name}/{line}/{time}/{count}")
     public JSONResult<?> findTimetableByNameAndTime(
             @PathVariable(required = true) String name,
             @PathVariable(required = true) String line,
@@ -50,7 +50,7 @@ public class TimetableController {
     }
 
     // 指定站点id、时间，对每条线路返回数量为n的班次
-    @GetMapping(path = "/all/timetable/for/id/{id}/{time}/{count}")
+    @GetMapping(path = "/all/id/{id}/{time}/{count}")
     public JSONResult<?> findAllTimetableByIdAndTime(
             @PathVariable(required = true) String id,
             @PathVariable(required = true) String time,
@@ -64,7 +64,7 @@ public class TimetableController {
     }
 
     // 根据站点id、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetable/for/id/with/range/{id}/{time}/{range}")
+    @GetMapping(path = "/id/with/range/{id}/{time}/{range}")
     public JSONResult<?> findTimetableByIdAndTimeRange(
             @PathVariable(required = true) String id,
             @PathVariable(required = true) String time,
@@ -78,7 +78,7 @@ public class TimetableController {
     }
 
     // 根据站点name、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetable/for/name/with/range/{name}/{time}/{range}")
+    @GetMapping(path = "/name/with/range/{name}/{time}/{range}")
     public JSONResult<?> findTimetableByNameAndTimeRange(
             @PathVariable(required = true) String name,
             @PathVariable(required = true) String time,
@@ -92,7 +92,7 @@ public class TimetableController {
     }
 
     // 指定线路名，返回班次信息（仅支持精确名称查找）
-    @GetMapping(path = "/timetable/for/line/{name}")
+    @GetMapping(path = "/line/{name}")
     public JSONResult<?> findTimetableByName(
             @PathVariable String name
     ) {
