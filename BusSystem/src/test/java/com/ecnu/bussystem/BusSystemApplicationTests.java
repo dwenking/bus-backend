@@ -211,9 +211,9 @@ class BusSystemApplicationTests {
         System.out.println(res);
         JSONObject res2 = lineService.findNotRepeating("G95路上行");
         System.out.println(res2);
-        JSONObject res4 = lineService.findNotRepeating("30路上行");
-        System.out.println(res4);
         JSONObject res3 = lineService.findNotRepeating("208路上行");
         System.out.println(res3);
+        JSONObject res4 = lineService.findNotRepeating("30路上行");
+        System.out.println(res4);
     }
 }
