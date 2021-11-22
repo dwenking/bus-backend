@@ -4,6 +4,7 @@ package com.ecnu.bussystem.controller;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.service.StationServiceImpl;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,8 +20,8 @@ public class StationController {
     @Autowired
     private StationServiceImpl stationService;
 
-    // 根据站点id查找站点信息
-    @GetMapping(path = "/{id}")
+    @ApiOperation(value = "findStationById根据站点id查找站点信息", notes = "根据站点id查找站点信息")
+    @GetMapping(path = "/stationid/{id}")
     public JSONResult<?> findStationById(
             @PathVariable String id
     ) {
@@ -31,8 +32,9 @@ public class StationController {
         return JSONResult.success(station);
     }
 
-    // 根据站点精确name查找站点信息
-    @GetMapping(path = "/percise/name/{name}")
+
+    @ApiOperation(value = "findStationByPreciseName根据站点精确name查找站点信息", notes = "根据站点精确name查找站点信息")
+    @GetMapping(path = "/percisestationname/{name}")
     public JSONResult<?> findStationByPreciseName(
             @PathVariable String name
     ) {
@@ -43,8 +45,9 @@ public class StationController {
         return JSONResult.success(stationList);
     }
 
-    // 根据站点模糊name查找站点信息
-    @GetMapping(path = "/vague/name/{name}")
+
+    @ApiOperation(value = "findStationByVagueName根据站点模糊name查找站点信息", notes = "根据站点模糊name查找站点信息")
+    @GetMapping(path = "/vaguestationname/{name}")
     public JSONResult<?> findStationByVagueName(
             @PathVariable String name
     ) {
@@ -55,8 +58,10 @@ public class StationController {
         return JSONResult.success(stationList);
     }
 
-    //返回站点间直达线路最多的两个站点的全部信息及线路数量，显示降序前十五个
-    @GetMapping(path = "/top15/pair")
+
+    @ApiOperation(value = "findTop15StationPairs根据连接两个相邻站台之间线路数量排序两个相邻站台", notes = "15根据连接两个相邻站台之间线路数量排序两个相邻站台，" +
+            "返回站点间直达线路最多的两个站点的全部信息及线路数量，显示降序前十五个")
+    @GetMapping(path = "/top15stationpairs")
     public JSONResult<?> findTop15StationPairs() {
         List<Map<String, Object>> mapList = stationService.findTop15StationPairs();
         if (mapList == null || mapList.size() == 0) {
@@ -65,7 +70,9 @@ public class StationController {
         return JSONResult.success(mapList);
     }
 
-    @GetMapping(path = "/top15/linenumber")
+
+    @ApiOperation(value = "findTop15LineNumberofStations统计停靠路线最多的站点并排序",notes = "统计停靠路线最多的站点并排序，按照ID统计，并根据数量降序排序，显示前15个")
+    @GetMapping(path = "/findtop15linenumberofstations")
     public JSONResult<?> findTop15LineNumberofStations() {
         List<Map<String, Object>> mapList = stationService.findTop15LineNumberofStations();
         if (mapList == null || mapList.size() == 0) {
