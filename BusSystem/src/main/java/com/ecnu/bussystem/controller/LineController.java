@@ -4,13 +4,11 @@ package com.ecnu.bussystem.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Line;
+import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +18,7 @@ import java.util.Map;
 public class LineController {
     @Autowired
     private LineServiceImpl lineService;
+
 
     @ApiOperation(value = "findLineByPerciseName根据线路精确名称查找线路",notes = "1根据线路精确名称查找线路（指明上下行）")
     @GetMapping(path = "/perciselinename/{name}")
@@ -45,6 +44,7 @@ public class LineController {
         return JSONResult.success(lines);
     }
 
+
     @ApiOperation(value = "findTop15MostStationsRoutes根据站点数量对线路进行排序",notes = "16根据站点数量对线路进行排序，降序排列，显示前15条，线路含方向")
     @GetMapping(path = "/top15moststationsroutes")
     public JSONResult<?> findTop15MostStationsRoutes() {
@@ -54,6 +54,7 @@ public class LineController {
         }
         return JSONResult.success(mapList);
     }
+
 
     @ApiOperation(value = "findOneWayStationsByRouteName统计某条线路的单行站",notes = "11B统计某条线路的单行站")
     @GetMapping(path = "/findonewaystationsbyname/{name}")
@@ -79,6 +80,7 @@ public class LineController {
     }
 
 
+
     @ApiOperation(value = "findTransferLines统计某个线路上每个站点可以换乘的线路",notes = "14查询换乘线路，站点根据id查找换乘路线。换乘线路数即线路停靠的所有站台停靠其他线路的数量的总和")
     @GetMapping(path = "/findtransferlines/{name}")
     public JSONResult<?> findTransferLines(
@@ -91,5 +93,48 @@ public class LineController {
         return JSONResult.success(res);
     }
 
+    // 删除某条线路并删除只有该线路经过的站点
+    @DeleteMapping(path = "/{name}")
+    public JSONResult<?> deleteLineByPerciseName(String name) {
+        JSONObject res = lineService.deleteLineByPerciseName(name);
+        if (res == null) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到可删除线路");
+        }
+        return JSONResult.success(res);
+    }
 
+    // 恢复某条线路并恢复只有该线路经过的站点
+    @PostMapping(path = "/{name}")
+    public JSONResult<?> restoreLineByPerciseName(String name) {
+        JSONObject res = lineService.restoreLineByPerciseName(name);
+        if (res == null) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到可恢复线路");
+        }
+        return JSONResult.success(res);
+    }
+
+    // 替换某条线路站点
+    @PutMapping(path = "/{name}/{oldId}/{newId}")
+    public JSONResult<?> replaceStationInLine(
+            @PathVariable(required = true) String oldId,
+            @PathVariable(required = true) String newId,
+            @PathVariable(required = true) String name) {
+        StationLine stationLine = lineService.replaceStationInLine(name, oldId, newId);
+        if (stationLine == null || !stationLine.isValid()) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "替换失败，请检查输入");
+        }
+        return JSONResult.success(stationLine);
+    }
+
+    // 计算某条线路的非重复系数
+    @GetMapping(path = "/notrepeating/{name}")
+    public JSONResult<?> findNotRepeating(
+            @PathVariable String name
+    ) {
+        JSONObject res = lineService.findNotRepeating(name);
+        if (res == null || res.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(res);
+    }
 }

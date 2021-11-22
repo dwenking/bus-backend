@@ -20,6 +20,6 @@ public class LineTimetable {
     private int stationCount = 0;
 
     public boolean isValid() {
-        return (!line.equals("")) && (line != null) && (timetables != null) && (timetables.size() != 0);
+        return (!"".equals(line)) && (line != null) && (timetables != null) && (timetables.size() != 0);
     }
 }

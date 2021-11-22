@@ -32,6 +32,7 @@ public class StationController {
         return JSONResult.success(station);
     }
 
+
     @ApiOperation(value = "findStationByPreciseName根据站点精确name查找站点信息", notes = "根据站点精确name查找站点信息")
     @GetMapping(path = "/percisestationname/{name}")
     public JSONResult<?> findStationByPreciseName(
@@ -43,6 +44,7 @@ public class StationController {
         }
         return JSONResult.success(stationList);
     }
+
 
     @ApiOperation(value = "findStationByVagueName根据站点模糊name查找站点信息", notes = "根据站点模糊name查找站点信息")
     @GetMapping(path = "/vaguestationname/{name}")
@@ -56,6 +58,7 @@ public class StationController {
         return JSONResult.success(stationList);
     }
 
+
     @ApiOperation(value = "findTop15StationPairs根据连接两个相邻站台之间线路数量排序两个相邻站台", notes = "15根据连接两个相邻站台之间线路数量排序两个相邻站台，" +
             "返回站点间直达线路最多的两个站点的全部信息及线路数量，显示降序前十五个")
     @GetMapping(path = "/top15stationpairs")
@@ -67,6 +70,7 @@ public class StationController {
         return JSONResult.success(mapList);
     }
 
+
     @ApiOperation(value = "findTop15LineNumberofStations统计停靠路线最多的站点并排序",notes = "统计停靠路线最多的站点并排序，按照ID统计，并根据数量降序排序，显示前15个")
     @GetMapping(path = "/findtop15linenumberofstations")
     public JSONResult<?> findTop15LineNumberofStations() {
@@ -77,7 +81,7 @@ public class StationController {
         return JSONResult.success(mapList);
     }
 
-    @GetMapping(path = "/findnumberofmetrostations")
+    @GetMapping(path = "/find/number/of/metro")
     public JSONResult<?> findNumberOfMetroStations() {
         List<String> stringList = stationService.findNumberOfMetroStations();
         if (stringList == null || stringList.size() == 0) {
@@ -86,7 +90,7 @@ public class StationController {
         return JSONResult.success(stringList);
     }
 
-    @GetMapping(path = "/findnumberofbeginstations")
+    @GetMapping(path = "/find/number/of/begin")
     public JSONResult<?> findNumberOfBeginStations() {
         List<String> stringList = stationService.findNumberOfBeginStations();
         if (stringList == null || stringList.size() == 0) {
@@ -95,7 +99,7 @@ public class StationController {
         return JSONResult.success(stringList);
     }
 
-    @GetMapping(path = "/findnumberofendstations")
+    @GetMapping(path = "/find/number/of/end")
     public JSONResult<?> findNumberOfEndStations() {
         List<String> stringList = stationService.findNumberOfEndStations();
         if (stringList == null || stringList.size() == 0) {
@@ -103,6 +107,4 @@ public class StationController {
         }
         return JSONResult.success(stringList);
     }
-
-
 }

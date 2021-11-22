@@ -20,7 +20,7 @@ public class TimetableController {
     TimetableServiceImpl timetableService;
 
     // 根据站点id、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetableforid/{id}/{line}/{time}/{count}")
+    @GetMapping(path = "/id/{id}/{line}/{time}/{count}")
     public JSONResult<?> findTimetableByIdAndTime(
             @PathVariable(required = true) String id,
             @PathVariable(required = true) String line,
@@ -35,7 +35,7 @@ public class TimetableController {
     }
 
     // 根据站点name、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetableforname/{name}/{line}/{time}/{count}")
+    @GetMapping(path = "/name/{name}/{line}/{time}/{count}")
     public JSONResult<?> findTimetableByNameAndTime(
             @PathVariable(required = true) String name,
             @PathVariable(required = true) String line,
@@ -49,8 +49,22 @@ public class TimetableController {
         return JSONResult.success(stationTimetables);
     }
 
+    // 指定站点id、时间，对每条线路返回数量为n的班次
+    @GetMapping(path = "/all/id/{id}/{time}/{count}")
+    public JSONResult<?> findAllTimetableByIdAndTime(
+            @PathVariable(required = true) String id,
+            @PathVariable(required = true) String time,
+            @PathVariable(required = true) String count
+    ) {
+        StationTimetable stationTimetable = timetableService.findAllTimetableByIdAndTime(time, id, count);
+        if (stationTimetable == null || !stationTimetable.isValid()) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，站点id:" + id + " 时间：" + time);
+        }
+        return JSONResult.success(stationTimetable);
+    }
+
     // 根据站点id、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetableforidwithrange/{id}/{time}/{range}")
+    @GetMapping(path = "/id/with/range/{id}/{time}/{range}")
     public JSONResult<?> findTimetableByIdAndTimeRange(
             @PathVariable(required = true) String id,
             @PathVariable(required = true) String time,
@@ -64,7 +78,7 @@ public class TimetableController {
     }
 
     // 根据站点name、线路名、时间查找符合要求的n条线路
-    @GetMapping(path = "/timetablefornamewithrange/{name}/{time}/{range}")
+    @GetMapping(path = "/name/with/range/{name}/{time}/{range}")
     public JSONResult<?> findTimetableByNameAndTimeRange(
             @PathVariable(required = true) String name,
             @PathVariable(required = true) String time,
@@ -78,19 +92,19 @@ public class TimetableController {
     }
 
     // 指定线路名，返回班次信息（仅支持精确名称查找）
-    @GetMapping(path = "/timetableforline/{name}")
+    @GetMapping(path = "/line/{name}")
     public JSONResult<?> findTimetableByName(
             @PathVariable String name
     ) {
         LineTimetable lineTimetable = timetableService.findTimetableByName(name);
-        if (!lineTimetable.isValid()) {
+        if (lineTimetable == null || !lineTimetable.isValid()) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到班次信息，请检查输入，线路name:" + name);
         }
         return JSONResult.success(lineTimetable);
     }
 
     // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
-    @GetMapping(path = "/linesoflongestruntime")
+    @GetMapping(path = "/line/of/longest/runtime")
     public JSONResult<?> findTimetableByName() {
         List<JSONObject> res = timetableService.findLinesOfLongestRuntime();
         if (res == null || res.size() == 0) {
