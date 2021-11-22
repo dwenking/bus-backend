@@ -493,7 +493,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public JSONObject deleteLineByPerciseName(String name) {
-        JSONObject res= new JSONObject();
+        JSONObject res = new JSONObject();
 
         String line = lineRepository.deleteLineByPerciseName(name);
         if (line == null || "".equals(line)) {
@@ -513,7 +513,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public JSONObject restoreLineByPerciseName(String name) {
-        JSONObject res= new JSONObject();
+        JSONObject res = new JSONObject();
 
         String line = lineRepository.restoreLineByPerciseName(name);
         if (line == null || "".equals(line)) {
@@ -601,16 +601,15 @@ public class LineServiceImpl implements LineService {
         List<Double> nums = new ArrayList<>();
         for (int i = 0; i < cnt - 1; i++) {
             String id1 = stations.get(i).getMyId();
-            for (int j = i + 1; j < cnt; j++) {
-                String id2 = stations.get(j).getMyId();
-                int routes = this.findDirectPathWithDirection(id1, id2);
-                nums.add(1.0 / routes);
-            }
+            String id2 = stations.get(i + 1).getMyId();
+            int routes = this.findDirectPathWithDirection(id1, id2);
+//            System.out.println(routes);
+            nums.add(1.0 / routes);
         }
         //用reduce函数求非重复系数和
         Double average = nums.stream().reduce(Double::sum).orElse(0.0);
         //求平均非重复系数并保留两位小数
-        average = average / nums.size();
+        average = average / (cnt - 1);
         BigDecimal b = new BigDecimal(average);
         double ave = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
         res.put("lineName", routeName);
