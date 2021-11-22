@@ -127,7 +127,7 @@ public class LineController {
     }
 
     // 计算某条线路的非重复系数
-    @GetMapping(path = "/notrepeating/{name}")
+    @GetMapping(path = "/not/repeating/{name}")
     public JSONResult<?> findNotRepeating(
             @PathVariable String name
     ) {
