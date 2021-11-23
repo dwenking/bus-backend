@@ -71,7 +71,7 @@ public class StationLineController {
     }
 
     //根据线路数据和首末节点返回线路
-    @GetMapping(path = "/line/of/start/and/end/station/{routename}:{name1}{name2}")
+    @GetMapping(path = "/line/of/start/and/end/station/{routename}/{name1}/{name2}")
     public JSONResult<?> findAlongStationLineByStartAndEndName(
             @PathVariable String routename,
             @PathVariable String name1,
@@ -84,7 +84,7 @@ public class StationLineController {
         return JSONResult.success(stationLines);
     }
 
-    @GetMapping(path = "/direct/path/between/two/station/{name1}{name2}")
+    @GetMapping(path = "/direct/path/between/two/station/{name1}/{name2}")
     public JSONResult<?>findDirectPathBetweenTwoStations(
             @PathVariable String name1,
             @PathVariable String name2
