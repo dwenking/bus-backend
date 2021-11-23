@@ -140,12 +140,13 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTop15MostStationsRoutes() {
-        System.out.println(lineService.findTop15MostStationsRoutes());
+        List<Map<String, String>> res= lineService.findTop15MostStationsRoutes();
+        System.out.println(res);
     }
 
     @Test
     void testFindDuplicateStations() {
-        List<JSONObject> res = lineService.findDuplicateStations("30路下行", "15路上行");
+        List<JSONObject> res = lineService.findDuplicateStations("15路上行", "30路下行");
         if (res == null) {
             System.out.println("数据不存在");
             return;
@@ -155,7 +156,8 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTheNumberOfOneWayStations() {
-        JSONObject res = lineService.findTheNumberOfOneWayStations();
+        String name="208路";
+        List<JSONObject> res = lineService.findOneWayStationsByRouteName(name);
         if (res == null) {
             System.out.println("数据不存在");
             return;
@@ -198,8 +200,28 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testFindTransferLines(){
-        List<JSONObject> res = lineService.findTransferLines("1路上行");
+    void testFindTransferLines() {
+        List<JSONObject> res = lineService.findTransferLines("261路上行");
         System.out.println(res);
     }
+
+    @Test
+    void testNotRepeating() {
+        JSONObject res = lineService.findNotRepeating("N12路上行");
+        System.out.println(res);
+        JSONObject res2 = lineService.findNotRepeating("G95路上行");
+        System.out.println(res2);
+        JSONObject res3 = lineService.findNotRepeating("208路上行");
+        System.out.println(res3);
+        JSONObject res4 = lineService.findNotRepeating("30路上行");
+        System.out.println(res4);
+    }
+
+    @Test
+    void testfindShortestPathById(){
+        String id1="16115";
+        String id2="14768";
+        JSONObject jsonObject=lineService.findShortestPathById(id1,id2);
+    }
+
 }

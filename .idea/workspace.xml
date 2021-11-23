@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d5de9bf7-b5c9-4ff8-961d-d8748e266b2b" name="Default Changelist" comment="update 4+6+10">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="ProjectId" id="1zup8zoWDUyNHytpXDgCq7v46Xx" />
+  <component name="ProjectViewState">
+    <option name="flattenPackages" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+    <option name="showVisibilityIcons" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RequestMappingsPanelOrder0" value="0" />
+    <property name="RequestMappingsPanelOrder1" value="1" />
+    <property name="RequestMappingsPanelWidth0" value="75" />
+    <property name="RequestMappingsPanelWidth1" value="75" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="jdk.selected.JAVA_MODULE" value="11 (2)" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/BusSystem" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="com.ecnu.bussystem.respository" />
+      <recent name="com.ecnu.bussystem.service" />
+      <recent name="com.ecnu.bussystem.controller" />
+      <recent name="com.ecnu.bussystem.entity" />
+      <recent name="com.ecnu.bussystem.common" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.BusSystemApplication">
+    <configuration name="BusSystemApplicationTests.testMongoDB" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BusSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ecnu.bussystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ecnu.bussystem" />
+      <option name="MAIN_CLASS_NAME" value="com.ecnu.bussystem.BusSystemApplicationTests" />
+      <option name="METHOD_NAME" value="testMongoDB" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BusSystemApplicationTests.testfindAlongStationLineByStartAndEndName" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BusSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ecnu.bussystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ecnu.bussystem" />
+      <option name="MAIN_CLASS_NAME" value="com.ecnu.bussystem.BusSystemApplicationTests" />
+      <option name="METHOD_NAME" value="testfindAlongStationLineByStartAndEndName" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BusSystemApplicationTests.testfindDirectPathBetweenTwoStations" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BusSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ecnu.bussystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ecnu.bussystem" />
+      <option name="MAIN_CLASS_NAME" value="com.ecnu.bussystem.BusSystemApplicationTests" />
+      <option name="METHOD_NAME" value="testfindDirectPathBetweenTwoStations" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BusSystemApplicationTests.testfindTop15LineNumberofStations" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BusSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ecnu.bussystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ecnu.bussystem" />
+      <option name="MAIN_CLASS_NAME" value="com.ecnu.bussystem.BusSystemApplicationTests" />
+      <option name="METHOD_NAME" value="testfindTop15LineNumberofStations" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BusSystemApplicationTests.testfindTop15StationPairs" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="BusSystem" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.ecnu.bussystem.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.ecnu.bussystem" />
+      <option name="MAIN_CLASS_NAME" value="com.ecnu.bussystem.BusSystemApplicationTests" />
+      <option name="METHOD_NAME" value="testfindTop15StationPairs" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="BusSystemApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+      <module name="BusSystem" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.ecnu.bussystem.BusSystemApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JUnit.BusSystemApplicationTests.testfindTop15LineNumberofStations" />
+        <item itemvalue="JUnit.BusSystemApplicationTests.testfindDirectPathBetweenTwoStations" />
+        <item itemvalue="JUnit.BusSystemApplicationTests.testfindTop15StationPairs" />
+        <item itemvalue="JUnit.BusSystemApplicationTests.testfindAlongStationLineByStartAndEndName" />
+        <item itemvalue="JUnit.BusSystemApplicationTests.testMongoDB" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d5de9bf7-b5c9-4ff8-961d-d8748e266b2b" name="Default Changelist" comment="" />
+      <created>1635007671422</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1635007671422</updated>
+      <workItem from="1635007673319" duration="231000" />
+      <workItem from="1635007915473" duration="5032000" />
+      <workItem from="1635042639834" duration="7745000" />
+      <workItem from="1635055533516" duration="8593000" />
+      <workItem from="1635126570780" duration="665000" />
+      <workItem from="1635130248748" duration="714000" />
+      <workItem from="1635134222218" duration="4192000" />
+      <workItem from="1635159967412" duration="6000" />
+      <workItem from="1635387196484" duration="2619000" />
+      <workItem from="1635414391693" duration="1809000" />
+      <workItem from="1635512229261" duration="2845000" />
+      <workItem from="1635673537575" duration="7603000" />
+      <workItem from="1635747468796" duration="1187000" />
+      <workItem from="1635753580199" duration="5678000" />
+      <workItem from="1635821628622" duration="5432000" />
+      <workItem from="1635841137513" duration="1597000" />
+      <workItem from="1635861829508" duration="215000" />
+      <workItem from="1635908166916" duration="27975000" />
+      <workItem from="1636021123235" duration="9085000" />
+      <workItem from="1636038698691" duration="727000" />
+      <workItem from="1636040577854" duration="42000" />
+      <workItem from="1636040667658" duration="117000" />
+      <workItem from="1636096017070" duration="4000" />
+      <workItem from="1636099264749" duration="957000" />
+      <workItem from="1636127859310" duration="208000" />
+      <workItem from="1636128093791" duration="40000" />
+      <workItem from="1636197133598" duration="159000" />
+      <workItem from="1636197851488" duration="9000" />
+      <workItem from="1637477876446" duration="1237000" />
+      <workItem from="1637512286206" duration="10000" />
+      <workItem from="1637545447767" duration="614000" />
+    </task>
+    <task id="LOCAL-00001" summary="add FindTwoStationOnThisPathDirectPathByName &amp; FindTwoStationDirectRoutenameByName &amp;FindTwoStationDirectPathByName">
+      <created>1635058617725</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1635058617725</updated>
+    </task>
+    <task id="LOCAL-00002" summary="edit readme">
+      <created>1635059443469</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1635059443469</updated>
+    </task>
+    <task id="LOCAL-00003" summary="add Swagger">
+      <created>1635094475119</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1635094475119</updated>
+    </task>
+    <task id="LOCAL-00004" summary="add swagger">
+      <created>1635130279681</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1635130279681</updated>
+    </task>
+    <task id="LOCAL-00005" summary="commit swagger">
+      <created>1635134343286</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1635134343286</updated>
+    </task>
+    <task id="LOCAL-00006" summary="commit demo">
+      <created>1635830698723</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1635830698723</updated>
+    </task>
+    <task id="LOCAL-00007" summary="update 4+6+10">
+      <created>1636034662749</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1636034662749</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="add FindTwoStationOnThisPathDirectPathByName &amp; FindTwoStationDirectRoutenameByName &amp;FindTwoStationDirectPathByName" />
+    <MESSAGE value="edit readme" />
+    <MESSAGE value="add Swagger" />
+    <MESSAGE value="add swagger" />
+    <MESSAGE value="commit swagger" />
+    <MESSAGE value="commit demo" />
+    <MESSAGE value="update 4+6+10" />
+    <option name="LAST_COMMIT_MESSAGE" value="update 4+6+10" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/bus_backend_v2$BusSystemApplicationTests_testFindTwoStationDirectPathByName.ic" NAME="BusSystemApplicationTests.testFindTwoStationDirectPathByName Coverage Results" MODIFIED="1635043273195" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.ecnu.bussystem.*</FILTER>
+    </SUITE>
+  </component>
+</project>

@@ -7,6 +7,10 @@ import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.RuntimeTable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
 import com.ecnu.bussystem.entity.timetable.Timetable;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,6 +18,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -21,6 +26,9 @@ import java.util.*;
 public class TimetableServiceImpl implements TimetableService {
     @Autowired
     MongoTemplate mongoTemplate;
+
+    @Resource
+    Driver neo4jDriver;
 
     @Autowired
     StationServiceImpl stationService;
@@ -37,9 +45,13 @@ public class TimetableServiceImpl implements TimetableService {
             return null;
         }
 
+        if (lineService.findLineByPerciseName(lineName) == null) {
+            return null;
+        }
+
         Query query = new Query();
         query.addCriteria(Criteria.where("stationID").is(stationId));
-        query.addCriteria(Criteria.where("routeName").in(lineName, lineName + "上行", lineName + "下行", lineName + "路上行", lineName + "路下行"));
+        query.addCriteria(Criteria.where("routeName").is(lineName));
         query.addCriteria(Criteria.where("passTime").gte(time));
         query.with(Sort.by(Sort.Direction.ASC, "passTime"));
         query.limit(Integer.parseInt(count));
@@ -85,7 +97,6 @@ public class TimetableServiceImpl implements TimetableService {
             StationTimetable tmp = findTimetableByIdAndTime(time, stationId, line, count);
 
             if (tmp == null || tmp.getTimetables() == null) {
-                System.out.println(line + " is null");
                 continue;
             }
 
@@ -106,6 +117,10 @@ public class TimetableServiceImpl implements TimetableService {
     @Override
     public List<StationTimetable> findTimetableByNameAndTime(String time, String stationName, String lineName, String count) {
         List<StationTimetable> stationTimetables = new ArrayList<>();
+
+        if (lineService.findLineByPerciseName(lineName) == null) {
+            return null;
+        }
 
         // 先在neo4j中查找所有符合name的Station
         List<Station> stationList = stationService.findStationByVagueName(stationName);
@@ -144,8 +159,15 @@ public class TimetableServiceImpl implements TimetableService {
                 return null;
             }
 
-            // Timetable里需要增加一个字段minutes，显示几分钟后到站
-            for (Timetable timetable : find) {
+            // 删除在neo4j里被删除的line
+            Iterator<Timetable> it = find.iterator();
+            while (it.hasNext()) {
+                Timetable timetable = it.next();
+
+                if (lineService.findLineByPerciseName(timetable.getRouteName()) == null) {
+                    it.remove();
+                }
+
                 String passTime = timetable.getPassTime();
                 Date tmp = formatter.parse(passTime);
                 int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
@@ -181,7 +203,7 @@ public class TimetableServiceImpl implements TimetableService {
 
     @Override
     public LineTimetable findTimetableByName(String lineName) {
-        if (lineName == null) {
+        if (lineName == null || lineService.findLineByPerciseName(lineName) == null) {
             return null;
         }
 
@@ -263,26 +285,22 @@ public class TimetableServiceImpl implements TimetableService {
     // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
     @Override
     public List<JSONObject> findLinesOfLongestRuntime() {
+        //修改为：根据timetable里的时间计算，得到运行时间
         List<JSONObject> res = new ArrayList<>();
-        try {
-            Query query = new Query();
-            query.with(Sort.by(Sort.Direction.DESC, "rate"));
-            query.limit(15);
-            List<RuntimeTable> find = mongoTemplate.find(query, RuntimeTable.class, "runtime");
-            if (find == null || find.size() == 0) {
-                System.out.println("出错啦！！");
-                return null;
+        try(Session session = neo4jDriver.session()){
+            String cypher = String.format("MATCH (n:vStations)-[r:vNEAR]->(m:vStations) " +
+                    "with r.name as routename, sum(r.time) as runtime " +
+                    "RETURN routename,runtime order by runtime DESC");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for(Record record : records){
+                Map<String,Object> map = record.asMap();
+                JSONObject json = new JSONObject();
+                for(String cur : map.keySet()){
+                    json.put(cur, map.get(cur).toString());
+                }
+                res.add(json);
             }
-            for (RuntimeTable tmp : find) {
-                JSONObject resline = new JSONObject();
-                resline.put("routeName", tmp.getName());
-                resline.put("runtime", tmp.getRuntime());
-                resline.put("firstBus", tmp.getFirstBus());
-                resline.put("lastBus", tmp.getLastBus());
-                res.add(resline);
-            }
-        } catch (Exception e) {
-            return null;
         }
         return res;
     }

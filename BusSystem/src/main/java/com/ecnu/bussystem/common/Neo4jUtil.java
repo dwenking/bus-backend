@@ -6,6 +6,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,28 +42,28 @@ public class Neo4jUtil {
      */
     public static List<String> getJsonStringFromPathResult(Result result) {
         List<Record> records = result.list();
-        List<String> mapStrings = new ArrayList<>();
+        List<String> nodeMapStrings = new ArrayList<>();
         Record record = null;
 
         if (records != null) {
             record = records.get(0);
         }
         else {
-            return mapStrings;
+            return nodeMapStrings;
         }
 
         // 因为是return p
         Value value = record.get("p");
         Path path = value.asPath();
-
         // 得到node结果后，类型转换并加入line的station list
         for (Node node : path.nodes()) {
             Map<String, Object> map = node.asMap();
             String mapString = JSONObject.toJSONString(map);
             if (mapString != null && !mapString.equals("")) {
-                mapStrings.add(mapString);
+                nodeMapStrings.add(mapString);
             }
         }
-        return mapStrings;
+        return nodeMapStrings;
     }
+
 }
