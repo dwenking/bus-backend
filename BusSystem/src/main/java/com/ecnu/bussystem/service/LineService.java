@@ -1,8 +1,11 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.Line;
+import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
+import com.ecnu.bussystem.entity.StationPath;
 
 import java.util.List;
 import java.util.Map;
@@ -129,6 +132,52 @@ public interface LineService {
     JSONObject findNotRepeating(String routeName);
 
 
-    JSONObject findShortestPathById(String id1, String id2);
+    /**
+     * 通过站点的id找到最短路径
+     *
+     * @param id1 id1
+     * @param id2 id2
+     * @return {@code JSONObject}
+     */
+    List<JSONObject> findShortestPathById(String id1, String id2);
+
+    /**
+     * 根据站点的name找到最短路径
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findShortestPathByName(String name1,String name2);
+
+
+    /**
+     * 根据站点的name找到各自的最短路径
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<StationPath> findAllShortestPathByName(String name1, String name2);
+
+
+    /**
+     * 找到最短路径中花费时间最少的路线
+     *
+     * @param name1
+     * @param name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findShortestMinTimePathByName(String name1,String name2);
+
+
+    /**
+     * 找到最短路径中换乘最少的路线
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findShortestMinTransferPathByName(String name1,String name2);
 }
 
