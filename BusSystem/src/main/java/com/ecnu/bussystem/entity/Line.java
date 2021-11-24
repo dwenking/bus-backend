@@ -41,13 +41,16 @@ public class Line implements Serializable, Comparable {
     @Property(name = "type")
     private String type;
 
-    @Property(name="route")
+    @Property(name = "runtime")
+    private String runtime;
+
+    @Property(name = "route")
     private String route;
 
     @Override
     public int compareTo(Object o) {
-        Line line=(Line) o;
-        if(this.getName().compareTo(line.getName())>0) {
+        Line line = (Line) o;
+        if (this.getName().compareTo(line.getName()) > 0) {
             return 1;
         } else {
             return -1;
