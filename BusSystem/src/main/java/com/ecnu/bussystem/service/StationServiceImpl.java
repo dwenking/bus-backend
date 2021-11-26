@@ -230,4 +230,52 @@ public class StationServiceImpl implements StationService {
         }
         return stringList;
     }
+
+    @Override
+    public JSONObject createNewStations(List<Station> stationList){
+        JSONObject res = new JSONObject();
+        try (Session session = neo4jDriver.session()) {
+            String lineName = stationList.get(0).getName(); //取线路名
+            // 根据站点名称创建vStation节点
+            for (int i=1;i<stationList.size();i++){
+                String cypher = String.format("CREATE (n:vStations \n" +
+                        "{name:'%s', englishname:'default',myId:'default'," +
+                        "type:'normal'})\n" +
+                        "return n",stationList.get(i).getName());
+                Result result = session.run(cypher);
+            }
+            // 对首尾vStation节点添加线路关系
+            String cypher = String.format("MATCH(a:vLines),(b:vStations)" +
+                    " WHERE a.name='%s' AND b.name='%s' " +
+                    "CREATE (b)-[r:begin]->(a) return r",lineName,stationList.get(1).getName());
+            Result result = session.run(cypher);
+
+            cypher = String.format("MATCH(a:vLines),(b:vStations)" +
+                    " WHERE a.name='%s' AND b.name='%s' " +
+                    "CREATE (b)-[r:end]->(a) return r",lineName,stationList.get(stationList.size()-1).getName());
+            result = session.run(cypher);
+
+            //对中间节点添加线路关系
+            for (int i=2;i<stationList.size()-1;i++){
+                 cypher = String.format("MATCH(a:vLines),(b:vStations)" +
+                         " WHERE a.name='%s' AND b.name='%s' " +
+                         "CREATE (b)-[r:in]->(a) return r",lineName,stationList.get(i).getName());
+                 result = session.run(cypher);
+            }
+
+            //对中间节点添加vNear关系
+            for (int i=1;i<stationList.size()-1;i++){
+
+                cypher = String.format("MATCH(a:vStations),(b:vStations) WHERE " +
+                        "a.name='%s' AND b.name='%s' " +
+                        "CREATE (a)-[r:vNear { name:'%s' }]->(b) return r",
+                        stationList.get(i).getName(),stationList.get(i+1).getName(),lineName);
+
+                result = session.run(cypher);
+            }
+
+            res.put("stationList",stationList);
+        }
+        return res;
+    }
 }

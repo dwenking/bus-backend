@@ -2,6 +2,7 @@ package com.ecnu.bussystem;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.service.LineServiceImpl;
@@ -218,6 +219,16 @@ class BusSystemApplicationTests {
         JSONObject res4 = lineService.findNotRepeating("30路上行");
         System.out.println(res4);
     }
+
+    @Test
+    void testCreateLine(){
+        Line testLine = new Line();
+        String name = "testname";
+        testLine.setName(name);
+        JSONObject res = lineService.createNewLine(testLine);
+        System.out.println(res);
+    }
+
 
     @Test
     void testfindShortestPathById(){

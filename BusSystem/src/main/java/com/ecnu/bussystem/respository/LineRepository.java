@@ -44,4 +44,8 @@ public interface LineRepository extends Neo4jRepository<Line,Long> {
 
     @Query("CREATE (n:vStations {myId: $stationId})-[r:end]->(m:vLines {name: $lineName}) RETURN type(r)")
     String addStationOfEndLine(String stationId, String lineName);
+
+
+
+
 }
