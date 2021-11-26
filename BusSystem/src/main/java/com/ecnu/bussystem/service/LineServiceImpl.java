@@ -61,6 +61,7 @@ public class LineServiceImpl implements LineService {
 
         Line line1 = lineRepository.findLineByPerciseName(routename1);
         Line line2 = lineRepository.findLineByPerciseName(routename2);
+        Line line = lineRepository.findLineByPerciseName(routeName);
         List<Line> lines = new ArrayList<>();
 
         if (line1 != null) {
@@ -68,6 +69,9 @@ public class LineServiceImpl implements LineService {
         }
         if (line2 != null) {
             lines.add(line2);
+        }
+        if (line != null) {
+            lines.add(line);
         }
 
         return lines;
@@ -276,17 +280,18 @@ public class LineServiceImpl implements LineService {
         return stationLineList;
     }
 
-    //(具体的直达线路）返回两个站之间是否存在直达线路，返回从name1到name2的线路（！注意：如果是name1到name2则线路的directional设为true，如果是相反，则为false）
+
+
     @Override
-    public List<StationLine> findDirectPathBetweenTwoStations(String name1, String name2) {
-        //存储直达线路的答案
-        List<StationLine> DirectPathList = new ArrayList<>();
+    public List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2) {
         //分别找出两个站name的站的集合，并已找到相关的线路，并返回在station中的lines数组中
         List<Station> stationList1 = stationService.findLineOfStationByVagueName(name1);
         List<Station> stationList2 = stationService.findLineOfStationByVagueName(name2);
         if (stationList1 == null || stationList1.size() == 0 || stationList2 == null || stationList2.size() == 0) {
             return null;
         }
+        List<JSONObject> objects = new ArrayList<>();
+        Set<String> directPathStationSet=new HashSet<>();//用来判断是否重复记录线路的集合
         for (Station station1 : stationList1) {
             for (Station station2 : stationList2) {
                 List<String> routename1list = station1.getLines();
@@ -297,6 +302,7 @@ public class LineServiceImpl implements LineService {
                 List<String> routenameList = new ArrayList<>(CollectionUtils.intersection(routename1list, routename2list));
                 //找到两个站的线路重合的线路，并遍历这些线路，找出线路中的两个站，截取直达的线路部分（注意方向）
                 for (String routename : routenameList) {
+                    System.out.println(routename);
                     StationLine stationLine = this.findStationOfLineByPreciseName(routename);
                     if (stationLine == null) {
                         break;
@@ -305,9 +311,24 @@ public class LineServiceImpl implements LineService {
                     if (stationList == null || stationList.size() == 0) {
                         break;
                     }
+                    System.out.println(stationLine.getDirectional());
+                    if (!stationLine.getDirectional()) {
+                        System.out.println("环线");
+
+                        if(!directPathStationSet.contains(routename + name1 + "<->" + name2 + "（环线）") &&! directPathStationSet.contains(routename+name2+"<->"+name1+"（环线）"))
+                        {
+                            JSONObject thisPath = new JSONObject();
+                            thisPath.put("name", routename);
+                            thisPath.put("directional", name1 + "<->" + name2 + "（环线）");
+                            objects.add(thisPath);
+                            directPathStationSet.add(routename+name1+"<->"+name2+"（环线）");
+                            directPathStationSet.add(routename+name2+"<->"+name1+"（环线）");
+                        }
+                        continue;
+                    }
                     //找出该线路下两个站的下标位置
-                    Integer indx1 = -1;
-                    Integer indx2 = -1;
+                    int indx1 = -1;
+                    int indx2 = -1;
                     for (int i = 0; i < stationList.size(); i++) {
                         if (stationList.get(i).getMyId().equals(station1.getMyId())) {
                             indx1 = i;
@@ -319,48 +340,23 @@ public class LineServiceImpl implements LineService {
                     if (indx1 == -1 || indx2 == -1) {
                         break;
                     }
-                    StationLine thisDirectpath = null;
-                    if (indx1 < indx2) {
-                        thisDirectpath = new StationLine(stationLine.getName(), true, new ArrayList<>(stationList.subList(indx1, indx2 + 1)), 0);
-                    } else {
-                        thisDirectpath = new StationLine(stationLine.getName(), false, new ArrayList<>(stationList.subList(indx2, indx1 + 1)), 0);
+
+                    if (indx1 < indx2&& !directPathStationSet.contains(routename + name1 + "->" + name2)) {
+                        JSONObject thisPath = new JSONObject();
+                        thisPath.put("name", routename);
+                        thisPath.put("directional", name1 + "->" + name2);
+                        directPathStationSet.add(routename+name1+"->"+name2);
+                        objects.add(thisPath);
+                    } else if(indx1>indx2&&!directPathStationSet.contains(routename + name2 + "->" + name1)){
+                        JSONObject thisPath=new JSONObject();
+                        thisPath.put("name", routename);
+                        thisPath.put("directional", name2 + "->" + name1);
+                        directPathStationSet.add(routename+name2+"->"+name1);
+                        objects.add(thisPath);
                     }
-                    DirectPathList.add(thisDirectpath);
+
                 }
             }
-        }
-        return DirectPathList;
-    }
-
-    @Override
-    public List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2) {
-        List<StationLine> stationLineList = this.findDirectPathBetweenTwoStations(name1, name2);
-        List<JSONObject> objects = new ArrayList<>();
-        if (stationLineList == null || stationLineList.size() == 0) {
-            return null;
-        }
-        Set<String> stationtruelist = new HashSet<>();
-        Set<String> stationfalselist = new HashSet<>();
-        for (StationLine stationLine : stationLineList) {
-            //只有从name1->name2的线路名称需要
-            if (stationLine.getDirectional()) {
-                stationtruelist.add(stationLine.getName());
-            } else {
-                stationfalselist.add(stationLine.getName());
-            }
-        }
-        //对所有符合要求的线路名称进行去重，封装为JSONObject
-        for (String name : stationtruelist) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("name", name);
-            jsonObject.put("directional", name1 + "->" + name2);
-            objects.add(jsonObject);
-        }
-        for (String name : stationfalselist) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("name", name);
-            jsonObject.put("directional", name2 + "->" + name1);
-            objects.add(jsonObject);
         }
         return objects;
     }
@@ -660,7 +656,7 @@ public class LineServiceImpl implements LineService {
             for (StationPath stationPath : newList) {
                 JSONObject object = new JSONObject();
                 object.put("stations", new ArrayList<>(stationPath.getStationList()));
-                object.put("length",stationPath.getLength());
+                object.put("length", stationPath.getLength());
                 ansObjectList.add(object);
             }
         } catch (Exception e) {
@@ -675,8 +671,8 @@ public class LineServiceImpl implements LineService {
     public List<JSONObject> findShortestPathByName(String name1, String name2) {
         List<JSONObject> ansJsonObjects = new ArrayList<>();
         List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
-        if(stationPaths==null||stationPaths.size()==0){
-            return  null;
+        if (stationPaths == null || stationPaths.size() == 0) {
+            return null;
         }
         //使用treeset去重（将相同经过相同站点的路线去重）
         Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
@@ -694,35 +690,35 @@ public class LineServiceImpl implements LineService {
                 break;
             }
             JSONObject object = new JSONObject();
-            object.put("stations",new ArrayList<>(stationPath.getStationList()));
-            object.put("length",stationPath.getLength());
+            object.put("stations", new ArrayList<>(stationPath.getStationList()));
+            object.put("length", stationPath.getLength());
             ansJsonObjects.add(object);
         }
         return ansJsonObjects;
     }
 
-        @Override
-        public List<StationPath> findAllShortestPathByName(String name1, String name2){
-            List<StationPath> ansStationPaths = new ArrayList<>();
-            try (Session session = neo4jDriver.session()) {
-                String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'})),\n" +
-                        "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
-                        "return p", name1, name2);
-                Result result = session.run(cypher);
-                ansStationPaths= Neo4jUtil.getStationPathFromResult(result);
-            } catch (Exception e) {
-                System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
-                return null;
-            }
-            return ansStationPaths;
+    @Override
+    public List<StationPath> findAllShortestPathByName(String name1, String name2) {
+        List<StationPath> ansStationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'})),\n" +
+                    "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
+                    "return p", name1, name2);
+            Result result = session.run(cypher);
+            ansStationPaths = Neo4jUtil.getStationPathFromResult(result);
+        } catch (Exception e) {
+            System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
+            return null;
         }
+        return ansStationPaths;
+    }
 
     @Override
     public List<JSONObject> findShortestMinTimePathByName(String name1, String name2) {
         List<JSONObject> ansJsonObjects = new ArrayList<>();
         List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
-        if(stationPaths==null||stationPaths.size()==0){
-            return  null;
+        if (stationPaths == null || stationPaths.size() == 0) {
+            return null;
         }
         //使用treeset去重（将相同经过相同站点的路线去重）
         Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
@@ -740,9 +736,9 @@ public class LineServiceImpl implements LineService {
                 break;
             }
             JSONObject object = new JSONObject();
-            object.put("stations",new ArrayList<>(stationPath.getStationList()));
-            object.put("time",stationPath.getTime());
-            object.put("length",stationPath.getLength());
+            object.put("stations", new ArrayList<>(stationPath.getStationList()));
+            object.put("time", stationPath.getTime());
+            object.put("length", stationPath.getLength());
             ansJsonObjects.add(object);
         }
         return ansJsonObjects;
@@ -753,8 +749,8 @@ public class LineServiceImpl implements LineService {
     public List<JSONObject> findShortestMinTransferPathByName(String name1, String name2) {
         List<JSONObject> ansJsonObjects = new ArrayList<>();
         List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
-        if(stationPaths==null||stationPaths.size()==0){
-            return  null;
+        if (stationPaths == null || stationPaths.size() == 0) {
+            return null;
         }
         //使用treeset去重（将相同经过相同站点的路线去重）
         Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
@@ -773,9 +769,9 @@ public class LineServiceImpl implements LineService {
                 break;
             }
             JSONObject object = new JSONObject();
-            object.put("stations",new ArrayList<>(stationPath.getStationList()));
-            object.put("transferCount",stationPath.getTransferCnt());
-            object.put("length",stationPath.getLength());
+            object.put("stations", new ArrayList<>(stationPath.getStationList()));
+            object.put("transferCount", stationPath.getTransferCnt());
+            object.put("length", stationPath.getLength());
             ansJsonObjects.add(object);
         }
         return ansJsonObjects;

@@ -71,15 +71,6 @@ public interface LineService {
      */
     List<StationLine> findAlongStationLineByStartAndEndName(String name1, String name2, String routename);
 
-    /**
-     * 找到两个站之间的直接路径
-     * 根据两个站点求两个站点之间有没有直达路径
-     *
-     * @param name1 name1
-     * @param name2 name2
-     * @return {@code List<StationLine>}
-     */
-    List<StationLine> findDirectPathBetweenTwoStations(String name1, String name2);
 
     /**
      * 找到两个站之间的直接路径名
@@ -148,7 +139,7 @@ public interface LineService {
      * @param name2 name2
      * @return {@code List<JSONObject>}
      */
-    List<JSONObject> findShortestPathByName(String name1,String name2);
+    List<JSONObject> findShortestPathByName(String name1, String name2);
 
 
     /**
@@ -168,7 +159,7 @@ public interface LineService {
      * @param name2
      * @return {@code List<JSONObject>}
      */
-    List<JSONObject> findShortestMinTimePathByName(String name1,String name2);
+    List<JSONObject> findShortestMinTimePathByName(String name1, String name2);
 
 
     /**
@@ -178,6 +169,6 @@ public interface LineService {
      * @param name2 name2
      * @return {@code List<JSONObject>}
      */
-    List<JSONObject> findShortestMinTransferPathByName(String name1,String name2);
+    List<JSONObject> findShortestMinTransferPathByName(String name1, String name2);
 }
 
