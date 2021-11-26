@@ -1,15 +1,15 @@
 package com.ecnu.bussystem.controller;
 
 
+import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
+import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
+import com.ecnu.bussystem.service.StationService;
 import com.ecnu.bussystem.service.StationServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -106,5 +106,17 @@ public class StationController {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
         }
         return JSONResult.success(stringList);
+    }
+
+    //添加一条新的线路
+    @RequestMapping(value = "/addNewStations", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
+    public JSONResult<?> addNewStations(@RequestBody List<Station> stationList){
+        JSONObject ans = stationService.createNewStations(stationList);
+
+        if (ans == null){
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(ans);
+
     }
 }

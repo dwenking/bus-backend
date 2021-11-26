@@ -615,62 +615,6 @@ public class LineServiceImpl implements LineService {
         return res;
     }
 
-    //未完成最短路径需求1
-    @Override
-    public JSONObject findShortestPathById(String id1, String id2) {
-    return null;
-    }
-//    @Override
-//    public JSONObject findShortestPathById(String id1, String id2) {
-//        List<Station> stations=new ArrayList<>();
-//        JSONObject jsonObject=new JSONObject();
-//        try (Session session = neo4jDriver.session()) {
-//            String cypher = String.format("match(n1:vStations{myId:'%s'}),(n2:vStations{myId:'%s'}),\n" +
-//                    "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
-//                    "return p",id1,id2);
-//            //从cyper中获取result结果
-//            Result result = session.run(cypher);
-//            try {
-//                List<Record> records = result.list();
-//                Record record = null;
-//                //得到result中的record（我们要的结果）
-//                for(int i=0;i<records.size();i++){
-//                    System.out.println("+++++++++");
-//                    System.out.println(record);
-//                }
-//                if (records != null) {
-//                    record = records.get(0);
-//                }
-//                else{
-//                    return null;
-//                }
-//
-//
-//                // 因为是return p
-//                Value value = record.get("p");
-//                System.out.println(value);
-//                System.out.println("value:"+value);
-//
-//                Path path = value.asPath();
-//                for(Path.Segment p:path){
-//                    Node sartNode=p.start();
-//                    Node endNode=p.end();
-//                    Relationship r=p.relationship();
-//
-//                }
-//
-////                for (String string : mapStrings) {
-////                    //json字符串直接转给java对象
-////                    Station station = JSONObject.parseObject(string, Station.class);
-////                    stations.add(station);
-////                }
-//            } catch (Exception e) {
-//                System.out.println("没有找到Record, name:" + id1+"->"+id2);
-//                return jsonObject;
-//            }
-//        }
-//        return null;
-//    }
 
     public int findDirectPathWithDirection(String id1, String id2) {
         int cnt = 0;
@@ -697,4 +641,24 @@ public class LineServiceImpl implements LineService {
         }
         return cnt;
     }
+
+    @Override
+    public JSONObject createNewLine(Line line) {
+        JSONObject res = new JSONObject();
+        try (Session session = neo4jDriver.session()) {
+            //根据线路基本信息创建vLine节点
+            String cypher = String.format("CREATE (n:vLines \n" +
+                    "{name:'%s', directional:'%s',kilometer:'%s'," +
+                    "lineNumber:'%s', onewayTime:'%s', route:'%s'," +
+                    "runTime:'%s', type:'%s',interval:'%s'})\n" +
+                    "return n",line.getName(),line.getDirectional(),line.getKilometer(),line.getLineNumber(),
+                                line.getOnewayTime(),line.getRoute(),line.getRuntime(),line.getType(), line.getInterval());
+            Result result = session.run(cypher);
+        }
+        res.put("line",line);
+
+        return res;
+    }
+
+
 }

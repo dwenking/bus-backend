@@ -46,7 +46,7 @@ public class LineController {
 
 
     @ApiOperation(value = "findTop15MostStationsRoutes根据站点数量对线路进行排序",notes = "16根据站点数量对线路进行排序，降序排列，显示前15条，线路含方向")
-    @GetMapping(path = "/top15/most/station")
+    @GetMapping(path = "/top15/most/station/route")
     public JSONResult<?> findTop15MostStationsRoutes() {
         List<Map<String, String>> mapList = lineService.findTop15MostStationsRoutes();
         if (mapList == null || mapList.size() == 0) {
@@ -103,9 +103,11 @@ public class LineController {
         return JSONResult.success(res);
     }
 
+
+    @ResponseBody
     // 恢复某条线路并恢复只有该线路经过的站点
     @PostMapping(path = "/{name}")
-    public JSONResult<?> restoreLineByPerciseName(String name) {
+    public JSONResult<?> restoreLineByPerciseName( String name) {
         JSONObject res = lineService.restoreLineByPerciseName(name);
         if (res == null) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到可恢复线路");
@@ -137,4 +139,18 @@ public class LineController {
         }
         return JSONResult.success(res);
     }
+
+    //添加一条新的线路
+    @RequestMapping(value = "/addNewLine", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
+    public JSONResult<?> addNewLine(@RequestBody Line line){
+        JSONObject ans = lineService.createNewLine(line);
+        if (ans == null){
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(ans);
+    }
+
+
+
+
 }

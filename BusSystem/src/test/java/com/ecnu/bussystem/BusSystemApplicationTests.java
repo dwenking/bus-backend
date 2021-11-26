@@ -1,6 +1,7 @@
 package com.ecnu.bussystem;
 
 import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.service.LineServiceImpl;
@@ -218,10 +219,20 @@ class BusSystemApplicationTests {
     }
 
     @Test
+    void testCreateLine(){
+        Line testLine = new Line();
+        String name = "testname";
+        testLine.setName(name);
+        JSONObject res = lineService.createNewLine(testLine);
+        System.out.println(res);
+    }
+
+
+   /* @Test
     void testfindShortestPathById(){
         String id1="16115";
         String id2="14768";
         JSONObject jsonObject=lineService.findShortestPathById(id1,id2);
-    }
+    }*/
 
 }

@@ -109,6 +109,8 @@ public interface LineService {
      * @param routeName 线路名称
      * @return {@code List<JSONObject>}
      */
+
+
     List<JSONObject> findTransferLines(String routeName);
 
     // 删除某条线路并删除只有该线路经过的站点
@@ -128,7 +130,7 @@ public interface LineService {
      */
     JSONObject findNotRepeating(String routeName);
 
-
-    JSONObject findShortestPathById(String id1, String id2);
+    // 创建一个新的路线
+    JSONObject createNewLine(Line line);
 }
 
