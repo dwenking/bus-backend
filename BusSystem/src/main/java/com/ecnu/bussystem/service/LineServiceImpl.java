@@ -302,7 +302,6 @@ public class LineServiceImpl implements LineService {
                 List<String> routenameList = new ArrayList<>(CollectionUtils.intersection(routename1list, routename2list));
                 //找到两个站的线路重合的线路，并遍历这些线路，找出线路中的两个站，截取直达的线路部分（注意方向）
                 for (String routename : routenameList) {
-                    System.out.println(routename);
                     StationLine stationLine = this.findStationOfLineByPreciseName(routename);
                     if (stationLine == null) {
                         break;
@@ -313,7 +312,6 @@ public class LineServiceImpl implements LineService {
                     }
                     System.out.println(stationLine.getDirectional());
                     if (!stationLine.getDirectional()) {
-                        System.out.println("环线");
 
                         if(!directPathStationSet.contains(routename + name1 + "<->" + name2 + "（环线）") &&! directPathStationSet.contains(routename+name2+"<->"+name1+"（环线）"))
                         {
