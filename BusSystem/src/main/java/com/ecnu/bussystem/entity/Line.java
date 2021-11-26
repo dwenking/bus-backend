@@ -56,4 +56,13 @@ public class Line implements Serializable, Comparable {
             return -1;
         }
     }
+
+    @Override
+    public String toString(){
+        return "Line{"+
+                "name="+name+
+                "route="+route+
+                "onewayTime"+onewayTime+
+                "}";
+    }
 }

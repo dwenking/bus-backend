@@ -1,5 +1,7 @@
 package com.ecnu.bussystem.service;
 
+import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 
 import java.util.List;
@@ -55,5 +57,8 @@ public interface StationService {
      * @return {@code List<String>}
      */
     List<String> findNumberOfEndStations();
+
+    // 创建新的站点
+    JSONObject createNewStations(List<Station> stationList);
 
 }

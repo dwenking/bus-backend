@@ -106,9 +106,11 @@ public class LineController {
         return JSONResult.success(res);
     }
 
+
+    @ResponseBody
     // 恢复某条线路并恢复只有该线路经过的站点
     @PostMapping(path = "/{name}")
-    public JSONResult<?> restoreLineByPerciseName(String name) {
+    public JSONResult<?> restoreLineByPerciseName( String name) {
         JSONObject res = lineService.restoreLineByPerciseName(name);
         if (res == null) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到可恢复线路");
@@ -141,6 +143,18 @@ public class LineController {
         }
         return JSONResult.success(res);
     }
+
+
+    //添加一条新的线路
+    @RequestMapping(value = "/addNewLine", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
+    public JSONResult<?> addNewLine(@RequestBody Line line){
+        JSONObject ans = lineService.createNewLine(line);
+        if (ans == null){
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(ans);
+    }
+
 
     @ApiOperation(value = "findShortestPathByName根据id求出两站之间的最短路径路线", notes = "5.1使用id查询某两个站台之间的最短路径")
     @GetMapping(path = "/get/shortest/path/id/{id1}/{id2}")

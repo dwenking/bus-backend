@@ -644,6 +644,25 @@ public class LineServiceImpl implements LineService {
 
 
     @Override
+    public JSONObject createNewLine(Line line) {
+        JSONObject res = new JSONObject();
+        try (Session session = neo4jDriver.session()) {
+            //根据线路基本信息创建vLine节点
+            String cypher = String.format("CREATE (n:vLines \n" +
+                    "{name:'%s', directional:'%s',kilometer:'%s'," +
+                    "lineNumber:'%s', onewayTime:'%s', route:'%s'," +
+                    "runTime:'%s', type:'%s',interval:'%s'})\n" +
+                    "return n",line.getName(),line.getDirectional(),line.getKilometer(),line.getLineNumber(),
+                                line.getOnewayTime(),line.getRoute(),line.getRuntime(),line.getType(), line.getInterval());
+            Result result = session.run(cypher);
+        }
+        res.put("line",line);
+
+        return res;
+    }
+
+
+    @Override
     public List<JSONObject> findShortestPathById(String id1, String id2) {
         List<JSONObject> ansObjectList = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {

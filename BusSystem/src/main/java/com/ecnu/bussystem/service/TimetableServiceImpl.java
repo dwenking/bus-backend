@@ -290,7 +290,7 @@ public class TimetableServiceImpl implements TimetableService {
         try(Session session = neo4jDriver.session()){
             String cypher = String.format("MATCH (n:vStations)-[r:vNEAR]->(m:vStations) " +
                     "with r.name as routename, sum(r.time) as runtime " +
-                    "RETURN routename,runtime order by runtime DESC");
+                    "RETURN routename,runtime order by runtime DESC limit(15)");
             Result result = session.run(cypher);
             List<Record> records = result.list();
             for(Record record : records){
