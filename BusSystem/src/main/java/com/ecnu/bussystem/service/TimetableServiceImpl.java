@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
-import com.ecnu.bussystem.entity.timetable.RuntimeTable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
 import com.ecnu.bussystem.entity.timetable.Timetable;
 import org.neo4j.driver.Driver;
@@ -303,5 +302,15 @@ public class TimetableServiceImpl implements TimetableService {
             }
         }
         return res;
+    }
+
+    //新建一个线路的时间表
+    @Override
+    public JSONObject createTimetable(List<Timetable> timetableList){
+        Collection<Timetable> ans = mongoTemplate.insert(timetableList, "timetable");
+        JSONObject res = new JSONObject();
+        res.put("add",ans);
+        return res;
+
     }
 }
