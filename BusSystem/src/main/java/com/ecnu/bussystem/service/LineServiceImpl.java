@@ -583,16 +583,14 @@ public class LineServiceImpl implements LineService {
             return null;
         }
         int cnt = stations.size();
-        //用nums存储每两个站点之间的非重复系数，根据id查找站点间的线路，并且区分方向
-        List<Double> nums = new ArrayList<>();
+        // 根据id查找站点间的线路，并且区分方向，把非重复系数的总和存储在average中
+        Double average = 0.0;
         for (int i = 0; i < cnt - 1; i++) {
             String id1 = stations.get(i).getMyId();
             String id2 = stations.get(i + 1).getMyId();
             int routes = this.findDirectPathWithDirection(id1, id2);
-            nums.add(1.0 / routes);
+            average += 1.0 / routes;
         }
-        //用reduce函数求非重复系数和
-        Double average = nums.stream().reduce(Double::sum).orElse(0.0);
         //求平均非重复系数并保留两位小数
         average = average / (cnt - 1);
         DecimalFormat df = new DecimalFormat("0.00");
