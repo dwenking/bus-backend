@@ -1,6 +1,5 @@
 package com.ecnu.bussystem;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
@@ -10,7 +9,6 @@ import com.ecnu.bussystem.service.StationServiceImpl;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -65,24 +63,24 @@ class BusSystemApplicationTests {
         }
     }
 
-    @Test
-    void testFindDirectPathBetweenTwoStations() {
-        String name1 = "航天立交东";
-        String name2 = "生态公园";
-        List<StationLine> stationLines = lineService.findDirectPathBetweenTwoStations(name1, name2);
-        if (stationLines == null || stationLines.size() == 0) {
-            System.out.println("不存在直达线路");
-            return;
-        }
-        for (StationLine stationLine : stationLines) {
-            System.out.println("直达线路：" + stationLine.getName() + ":");
-            if (stationLine.getDirectional()) System.out.println(name1 + "->" + name2);
-            if (!stationLine.getDirectional()) System.out.println(name2 + "->" + name1);
-            List<Station> stationList = stationLine.getStations();
-            for (Station station : stationList)
-                System.out.println(station);
-        }
-    }
+//    @Test
+//    void testFindDirectPathBetweenTwoStations() {
+//        String name1 = "航天立交东";
+//        String name2 = "生态公园";
+//        List<StationLine> stationLines = lineService.findDirectPathBetweenTwoStations(name1, name2);
+//        if (stationLines == null || stationLines.size() == 0) {
+//            System.out.println("不存在直达线路");
+//            return;
+//        }
+//        for (StationLine stationLine : stationLines) {
+//            System.out.println("直达线路：" + stationLine.getName() + ":");
+//            if (stationLine.getDirectional()) System.out.println(name1 + "->" + name2);
+//            if (!stationLine.getDirectional()) System.out.println(name2 + "->" + name1);
+//            List<Station> stationList = stationLine.getStations();
+//            for (Station station : stationList)
+//                System.out.println(station);
+//        }
+//    }
 
     @Test
     void testFindAlongStationLineByStartAndEndName() {
@@ -143,7 +141,7 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTop15MostStationsRoutes() {
-        List<Map<String, String>> res= lineService.findTop15MostStationsRoutes();
+        List<Map<String, String>> res = lineService.findTop15MostStationsRoutes();
         System.out.println(res);
     }
 
@@ -159,7 +157,7 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindTheNumberOfOneWayStations() {
-        String name="208路";
+        String name = "208路";
         List<JSONObject> res = lineService.findOneWayStationsByRouteName(name);
         if (res == null) {
             System.out.println("数据不存在");
@@ -221,7 +219,7 @@ class BusSystemApplicationTests {
     }
 
     @Test
-    void testCreateLine(){
+    void testCreateLine() {
         Line testLine = new Line();
         String name = "testname";
         testLine.setName(name);
@@ -231,57 +229,57 @@ class BusSystemApplicationTests {
 
 
     @Test
-    void testfindShortestPathById(){
-        String id1="16115";
-        String id2="14768";
-        List<JSONObject> stations=lineService.findShortestPathById(id1,id2);
-        if(stations==null ||stations.size()==0){
-            System.out.println("没有找到最短路径从id1:"+id1+"->"+"id2:"+id2);
+    void testfindShortestPathById() {
+        String id1 = "16115";
+        String id2 = "14768";
+        List<JSONObject> stations = lineService.findShortestPathById(id1, id2);
+        if (stations == null || stations.size() == 0) {
+            System.out.println("没有找到最短路径从id1:" + id1 + "->" + "id2:" + id2);
             return;
         }
-       for(JSONObject object:stations){
-           System.out.println(object);
-       }
-    }
-
-    @Test
-    void testfindShortestPathByName(){
-        String name1="大悦城";
-        String name2="小吃街";
-        List<JSONObject> stations=lineService.findShortestPathByName(name1,name2);
-        if(stations==null ||stations.size()==0){
-            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
-            return;
-        }
-        for(JSONObject object:stations){
+        for (JSONObject object : stations) {
             System.out.println(object);
         }
     }
 
     @Test
-    void testfindShortestMinTimePathByName(){
-        String name1="大悦城";
-        String name2="小吃街";
-        List<JSONObject> stations=lineService.findShortestMinTimePathByName(name1,name2);
-        if(stations==null ||stations.size()==0){
-            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
+    void testfindShortestPathByName() {
+        String name1 = "大悦城";
+        String name2 = "小吃街";
+        List<JSONObject> stations = lineService.findShortestPathByName(name1, name2);
+        if (stations == null || stations.size() == 0) {
+            System.out.println("没有找到最短路径从name1:" + name1 + "->" + "name2:" + name2);
             return;
         }
-        for(JSONObject object:stations){
+        for (JSONObject object : stations) {
             System.out.println(object);
         }
     }
 
     @Test
-    void testfindShortestMinTransferPathByName(){
-        String name1="大悦城";
-        String name2="小吃街";
-        List<JSONObject> stations=lineService.findShortestMinTransferPathByName(name1,name2);
-        if(stations==null ||stations.size()==0){
-            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
+    void testfindShortestMinTimePathByName() {
+        String name1 = "大悦城";
+        String name2 = "小吃街";
+        List<JSONObject> stations = lineService.findShortestMinTimePathByName(name1, name2);
+        if (stations == null || stations.size() == 0) {
+            System.out.println("没有找到最短路径从name1:" + name1 + "->" + "name2:" + name2);
             return;
         }
-        for(JSONObject object:stations){
+        for (JSONObject object : stations) {
+            System.out.println(object);
+        }
+    }
+
+    @Test
+    void testfindShortestMinTransferPathByName() {
+        String name1 = "大悦城";
+        String name2 = "小吃街";
+        List<JSONObject> stations = lineService.findShortestMinTransferPathByName(name1, name2);
+        if (stations == null || stations.size() == 0) {
+            System.out.println("没有找到最短路径从name1:" + name1 + "->" + "name2:" + name2);
+            return;
+        }
+        for (JSONObject object : stations) {
             System.out.println(object);
         }
     }
