@@ -35,4 +35,11 @@ public class Station implements Serializable {
 
     private List<String> lines;
 
+    @Override
+    public String toString(){
+        return "name: "+name
+                +"\n englishname: "+englishname
+                +"\n myId: "+myId;
+    }
+
 }

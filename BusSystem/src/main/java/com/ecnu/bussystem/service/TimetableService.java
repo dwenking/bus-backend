@@ -3,6 +3,7 @@ package com.ecnu.bussystem.service;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
+import com.ecnu.bussystem.entity.timetable.Timetable;
 
 import java.util.List;
 
@@ -27,4 +28,7 @@ public interface TimetableService {
 
     // 找出所有路线中运行时间最长的线路，倒序显示前15个线路
     List<JSONObject> findLinesOfLongestRuntime();
+
+    //新建一个线路的时间表
+    JSONObject createTimetable(List<Timetable> timetableList);
 }

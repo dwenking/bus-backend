@@ -2,14 +2,14 @@ package com.ecnu.bussystem.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
+import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.timetable.LineTimetable;
 import com.ecnu.bussystem.entity.timetable.StationTimetable;
+import com.ecnu.bussystem.entity.timetable.Timetable;
+import com.ecnu.bussystem.service.TimetableService;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -111,5 +111,17 @@ public class TimetableController {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到数据");
         }
         return JSONResult.success(res);
+    }
+
+    //添加一条新的线路的时间表
+    @RequestMapping(value = "/addNewTimetables", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
+    public JSONResult<?>  createTimetable(@RequestBody List<Timetable> timetableList){
+        JSONObject ans = timetableService.createTimetable(timetableList);
+
+        if (ans == null){
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+        }
+        return JSONResult.success(ans);
+
     }
 }

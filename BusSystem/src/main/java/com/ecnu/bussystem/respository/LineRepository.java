@@ -50,4 +50,8 @@ public interface LineRepository extends Neo4jRepository<Line,Long> {
             "WHERE EXISTS(m.directional) " +
             "CREATE (n)-[r:end]->(m) RETURN type(r)")
     String addStationOfEndLine(String stationId, String lineName);
+
+
+
+
 }

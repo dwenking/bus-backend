@@ -1,6 +1,8 @@
 package com.ecnu.bussystem;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.ecnu.bussystem.entity.Line;
 import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.service.LineServiceImpl;
@@ -8,6 +10,7 @@ import com.ecnu.bussystem.service.StationServiceImpl;
 import com.ecnu.bussystem.service.TimetableServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
@@ -218,10 +221,69 @@ class BusSystemApplicationTests {
     }
 
     @Test
+    void testCreateLine(){
+        Line testLine = new Line();
+        String name = "testname";
+        testLine.setName(name);
+        JSONObject res = lineService.createNewLine(testLine);
+        System.out.println(res);
+    }
+
+
+    @Test
     void testfindShortestPathById(){
         String id1="16115";
         String id2="14768";
-        JSONObject jsonObject=lineService.findShortestPathById(id1,id2);
+        List<JSONObject> stations=lineService.findShortestPathById(id1,id2);
+        if(stations==null ||stations.size()==0){
+            System.out.println("没有找到最短路径从id1:"+id1+"->"+"id2:"+id2);
+            return;
+        }
+       for(JSONObject object:stations){
+           System.out.println(object);
+       }
+    }
+
+    @Test
+    void testfindShortestPathByName(){
+        String name1="大悦城";
+        String name2="小吃街";
+        List<JSONObject> stations=lineService.findShortestPathByName(name1,name2);
+        if(stations==null ||stations.size()==0){
+            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
+            return;
+        }
+        for(JSONObject object:stations){
+            System.out.println(object);
+        }
+    }
+
+    @Test
+    void testfindShortestMinTimePathByName(){
+        String name1="大悦城";
+        String name2="小吃街";
+        List<JSONObject> stations=lineService.findShortestMinTimePathByName(name1,name2);
+        if(stations==null ||stations.size()==0){
+            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
+            return;
+        }
+        for(JSONObject object:stations){
+            System.out.println(object);
+        }
+    }
+
+    @Test
+    void testfindShortestMinTransferPathByName(){
+        String name1="大悦城";
+        String name2="小吃街";
+        List<JSONObject> stations=lineService.findShortestMinTransferPathByName(name1,name2);
+        if(stations==null ||stations.size()==0){
+            System.out.println("没有找到最短路径从name1:"+name1+"->"+"name2:"+name2);
+            return;
+        }
+        for(JSONObject object:stations){
+            System.out.println(object);
+        }
     }
 
 }
