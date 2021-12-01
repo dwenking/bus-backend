@@ -27,7 +27,7 @@ public class StationLineController {
             @PathVariable String name
     ) {
         StationLine line = lineService.findStationOfLineByPreciseName(name);
-        if (!line.isValid()) {
+        if (line == null || !line.isValid()) {
             return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到线路站点数据,name:" + name);
         }
         return JSONResult.success(line);

@@ -76,7 +76,6 @@ class BusSystemApplicationTests {
            System.out.println(object);
        }
     }
-
     @Test
     void testFindAlongStationLineByStartAndEndName() {
         List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("画展中心", "金河客运站", "1路");

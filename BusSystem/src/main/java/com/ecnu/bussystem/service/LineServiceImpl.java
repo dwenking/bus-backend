@@ -164,6 +164,8 @@ public class LineServiceImpl implements LineService {
             routeName = routeName.substring(0, routeName.length() - 2);
         }
 
+        System.out.println(routeName);
+
         String routename1 = routeName + "上行";
         String routename2 = routeName + "下行";
 
@@ -183,7 +185,6 @@ public class LineServiceImpl implements LineService {
         return stationLines;
     }
 
-    /////////////////
     @Override
     public List<Map<String, String>> findTop15MostStationsRoutes() {
         List<Map<String, String>> mapList = new ArrayList<>();
@@ -549,7 +550,6 @@ public class LineServiceImpl implements LineService {
 
             // 更新与vLines关系
             String type = lineRepository.deleteStationOfLine(oldId, name);
-            System.out.println(type);
             if ("begin".equals(type)) {
                 lineRepository.addStationOfBeginLine(newId, name);
             } else if ("end".equals(type)) {

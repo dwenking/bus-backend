@@ -158,13 +158,23 @@ public class TimetableServiceImpl implements TimetableService {
                 return null;
             }
 
-            // 删除在neo4j里被删除的line
+            // 删除在neo4j里被删除的line和已经出现过的route
             Iterator<Timetable> it = find.iterator();
+            HashSet<String> map = new HashSet<>();
+
             while (it.hasNext()) {
                 Timetable timetable = it.next();
 
                 if (lineService.findLineByPerciseName(timetable.getRouteName()) == null) {
                     it.remove();
+                }
+                else {
+                    if (map.contains(timetable.getRouteName())) {
+                        it.remove();
+                    }
+                    else {
+                        map.add(timetable.getRouteName());
+                    }
                 }
 
                 String passTime = timetable.getPassTime();
