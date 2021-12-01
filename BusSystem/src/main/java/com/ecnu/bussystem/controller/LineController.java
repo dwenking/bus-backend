@@ -234,6 +234,4 @@ public class LineController {
 
         return JSONResult.success(routes);
     }
-
-
 }

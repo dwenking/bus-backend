@@ -63,25 +63,6 @@ class BusSystemApplicationTests {
         }
     }
 
-//    @Test
-//    void testFindDirectPathBetweenTwoStations() {
-//        String name1 = "航天立交东";
-//        String name2 = "生态公园";
-//        List<StationLine> stationLines = lineService.findDirectPathBetweenTwoStations(name1, name2);
-//        if (stationLines == null || stationLines.size() == 0) {
-//            System.out.println("不存在直达线路");
-//            return;
-//        }
-//        for (StationLine stationLine : stationLines) {
-//            System.out.println("直达线路：" + stationLine.getName() + ":");
-//            if (stationLine.getDirectional()) System.out.println(name1 + "->" + name2);
-//            if (!stationLine.getDirectional()) System.out.println(name2 + "->" + name1);
-//            List<Station> stationList = stationLine.getStations();
-//            for (Station station : stationList)
-//                System.out.println(station);
-//        }
-//    }
-
     @Test
     void testFindAlongStationLineByStartAndEndName() {
         List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("画展中心", "金河客运站", "1路");

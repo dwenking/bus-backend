@@ -12,9 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @Document(collection = "timetable")
 public class Timetable {
-    @Id
-    @JSONField(serialize = false)
-    private String id;
 
     private String routeName;
     private String passTime;
