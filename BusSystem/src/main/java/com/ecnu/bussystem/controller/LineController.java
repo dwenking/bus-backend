@@ -4,14 +4,12 @@ package com.ecnu.bussystem.controller;
 import com.alibaba.fastjson.JSONObject;
 import com.ecnu.bussystem.common.JSONResult;
 import com.ecnu.bussystem.entity.Line;
-import com.ecnu.bussystem.entity.Station;
 import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.entity.StationPath;
 import com.ecnu.bussystem.service.LineServiceImpl;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import springfox.documentation.spring.web.json.Json;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +89,7 @@ public class LineController {
     ) {
         List<JSONObject> res = lineService.findTransferLines(name);
         if (res == null || res.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR, "该线路所有站点都没有可换乘的线路");
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "没有找到可换乘的线路");
         }
         return JSONResult.success(res);
     }
@@ -139,7 +137,7 @@ public class LineController {
     ) {
         JSONObject res = lineService.findNotRepeating(name);
         if (res == null || res.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR, "出错啦！");
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "不存在该线路，请重新输入");
         }
         return JSONResult.success(res);
     }

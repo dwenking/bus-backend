@@ -65,7 +65,7 @@ public class StationLineController {
     ) {
         List<JSONObject> stations = lineService.findDuplicateStations(name1, name2);
         if (stations == null || stations.size() == 0) {
-            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点,name1:" + name1 + "name2" + name2);
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "未找到重复站点");
         }
         return JSONResult.success(stations);
     }
