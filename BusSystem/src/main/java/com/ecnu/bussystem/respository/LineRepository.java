@@ -32,16 +32,22 @@ public interface LineRepository extends Neo4jRepository<Line,Long> {
     String restoreLineByPerciseName(String name);
 
     // 删除与vLines节点的关系
-    @Query("MATCH (n:vStations {myId: $stationId})-[r]->(m:vLines {name: $lineName}) DELETE r RETURN type(r)")
+    @Query("MATCH (n:vStations {myId: $stationId})-[r]->(m:vLines {name: $lineName}) WHERE EXISTS(m.directional) AND EXISTS(n.name) DELETE r RETURN type(r)")
     String deleteStationOfLine(String stationId, String lineName);
 
     // 添加与vLines节点的关系
-    @Query("CREATE (n:vStations {myId: $stationId})-[r:in]->(m:vLines {name: $lineName}) RETURN type(r)")
+    @Query("MATCH (n:vStations {myId: $stationId}), (m:vLines {name: $lineName}) " +
+            "WHERE EXISTS(m.directional) " +
+            "CREATE (n)-[r:in]->(m) RETURN type(r)")
     String addStationOfInLine(String stationId, String lineName);
 
-    @Query("CREATE (n:vStations {myId: $stationId})-[r:begin]->(m:vLines {name: $lineName}) RETURN type(r)")
+    @Query("MATCH (n:vStations {myId: $stationId}), (m:vLines {name: $lineName}) " +
+            "WHERE EXISTS(m.directional) " +
+            "CREATE (n)-[r:begin]->(m) RETURN type(r)")
     String addStationOfBeginLine(String stationId, String lineName);
 
-    @Query("CREATE (n:vStations {myId: $stationId})-[r:end]->(m:vLines {name: $lineName}) RETURN type(r)")
+    @Query("MATCH (n:vStations {myId: $stationId}), (m:vLines {name: $lineName}) " +
+            "WHERE EXISTS(m.directional) " +
+            "CREATE (n)-[r:end]->(m) RETURN type(r)")
     String addStationOfEndLine(String stationId, String lineName);
 }
