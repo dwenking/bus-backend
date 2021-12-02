@@ -95,7 +95,7 @@ public class LineController {
     }
 
     // 删除某条线路并删除只有该线路经过的站点
-    @DeleteMapping(path = "/{name}")
+    @DeleteMapping(path = "/delete")
     public JSONResult<?> deleteLineByPerciseName(String name) {
         JSONObject res = lineService.deleteLineByPerciseName(name);
         if (res == null) {
@@ -107,7 +107,7 @@ public class LineController {
 
     @ResponseBody
     // 恢复某条线路并恢复只有该线路经过的站点
-    @PostMapping(path = "/{name}")
+    @PostMapping(path = "/restore")
     public JSONResult<?> restoreLineByPerciseName( String name) {
         JSONObject res = lineService.restoreLineByPerciseName(name);
         if (res == null) {
