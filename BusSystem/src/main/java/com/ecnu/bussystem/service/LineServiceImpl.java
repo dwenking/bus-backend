@@ -622,17 +622,14 @@ public class LineServiceImpl implements LineService {
     public List<JSONObject> findShortestPathById(String id1, String id2) {
         List<JSONObject> ansObjectList = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("match(n1:vStations{myId:'%s'}),(n2:vStations{myId:'%s'}),\n" +
-                    "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
-                    "return p", id1, id2);
+            String cypher = String.format("match((n1:vStations{myId:'%s'})),((n2:vStations{myId:'%s'}))\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"weight\")yield path as path,weight as weight\n" +
+                    "with path as p\n" +
+                    "return p,length(p)", id1, id2);
             Result result = session.run(cypher);
             List<StationPath> stationPaths = Neo4jUtil.getStationPathFromResult(result);
-            //使用treeset去重
-            Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
-            newSet.addAll(stationPaths);
-            List<StationPath> newList = new ArrayList<>(newSet);
             //将每一条路线封装为一个JSONObject
-            for (StationPath stationPath : newList) {
+            for (StationPath stationPath : stationPaths) {
                 JSONObject object = new JSONObject();
                 object.put("stations", new ArrayList<>(stationPath.getStationList()));
                 object.put("length", stationPath.getLength());
@@ -648,21 +645,17 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<JSONObject> findShortestPathByName(String name1, String name2) {
-        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        List<JSONObject> ansObjectList = new ArrayList<>();
         List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
         if (stationPaths == null || stationPaths.size() == 0) {
             return null;
         }
-        //使用treeset去重（将相同经过相同站点的路线去重）
-        Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
-        newSet.addAll(stationPaths);
-        List<StationPath> newList = new ArrayList<>(newSet);
         //使用comparable接口将newList排序，将其中的len属性从小到大排序
         Comparator<StationPath> compareLen = Comparator.comparing(StationPath::getLength);
-        Collections.sort(newList, compareLen);
+        Collections.sort(stationPaths, compareLen);
         int minLength = -1;//存储最短的路线长度，只取最短的长度
         //将每一条路线封装为一个JSONObject
-        for (StationPath stationPath : newList) {
+        for (StationPath stationPath : stationPaths) {
             if (minLength == -1) {
                 minLength = stationPath.getLength();
             } else if (minLength != stationPath.getLength()) {
@@ -671,18 +664,19 @@ public class LineServiceImpl implements LineService {
             JSONObject object = new JSONObject();
             object.put("stations", new ArrayList<>(stationPath.getStationList()));
             object.put("length", stationPath.getLength());
-            ansJsonObjects.add(object);
+            ansObjectList.add(object);
         }
-        return ansJsonObjects;
+        return ansObjectList;
     }
 
     @Override
     public List<StationPath> findAllShortestPathByName(String name1, String name2) {
         List<StationPath> ansStationPaths;
         try (Session session = neo4jDriver.session()) {
-            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'})),\n" +
-                    "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
-                    "return p", name1, name2);
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"weight\")yield path as path,weight as weight\n" +
+                    "with path as p\n" +
+                    "return p,length(p)", name1, name2);
             Result result = session.run(cypher);
             ansStationPaths = Neo4jUtil.getStationPathFromResult(result);
         } catch (Exception e) {
@@ -704,9 +698,7 @@ public class LineServiceImpl implements LineService {
                     "return p,sumtime", name1, name2);
             System.out.println("run cyper");
             Result result = session.run(cypher);
-
             stationPaths = Neo4jUtil.getStationPathFromResult(result);
-//            System.out.println(stationPaths);
             if (stationPaths == null || stationPaths.size() == 0) {
                 return null;
             }
@@ -780,7 +772,7 @@ public class LineServiceImpl implements LineService {
         List<StationPath> stationPaths = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
             String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
-                    "CALL apoc.algo.allSimplePaths(n1,n2,\"vNEAR>\",10)yield path\n" +
+                    "CALL apoc.algo.allSimplePaths(n1,n2,\"vNEAR>\",20)yield path\n" +
                     "with reduce(x=0,r in relationships(path)|x+r.time) as sumtime,path as p\n" +
                     "order by sumtime\n" +
                     "return p,sumtime", name1, name2);
@@ -833,7 +825,7 @@ public class LineServiceImpl implements LineService {
             int minTransferCnt = -1;//存储最短的换乘次数
             //将每一条路线封装为一个JSONObject
             for (StationPath stationPath : stationPaths) {
-                if (minTransferCnt ==-1) {
+                if (minTransferCnt == -1) {
                     minTransferCnt = stationPath.getTransferCnt();
                 } else if (minTransferCnt != stationPath.getTransferCnt()) {
                     break;
