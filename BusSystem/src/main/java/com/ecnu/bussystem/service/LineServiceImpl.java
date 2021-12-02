@@ -305,7 +305,6 @@ public class LineServiceImpl implements LineService {
                     if (stationList == null || stationList.size() == 0) {
                         break;
                     }
-                    System.out.println(stationLine.getDirectional());
                     if (!stationLine.getDirectional()) {
 
                         if (!directPathStationSet.contains(routename + name1 + "<->" + name2 + "（环线）") && !directPathStationSet.contains(routename + name2 + "<->" + name1 + "（环线）")) {
@@ -707,7 +706,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<StationPath> findAllShortestPathByName(String name1, String name2) {
-        List<StationPath> ansStationPaths = new ArrayList<>();
+        List<StationPath> ansStationPaths;
         try (Session session = neo4jDriver.session()) {
             String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'})),\n" +
                     "p=allShortestPaths((n1)-[:vNEAR *..10]-(n2))\n" +
@@ -722,67 +721,165 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<JSONObject> findShortestMinTimePathByName(String name1, String name2) {
+    public List<JSONObject> findMinTimePathByName_REDUCE(String name1, String name2) {
         List<JSONObject> ansJsonObjects = new ArrayList<>();
-        List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
-        if (stationPaths == null || stationPaths.size() == 0) {
+        List<StationPath> stationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'})),\n" +
+                    "p=((n1)-[r:vNEAR*..10]->(n2))\n" +
+                    "with p,REDUCE(x=0,r in relationships(p)|x+r.time) as sumtime\n" +
+                    "order by sumtime\n" +
+                    "return p,sumtime", name1, name2);
+            System.out.println("run cyper");
+            Result result = session.run(cypher);
+
+            stationPaths = Neo4jUtil.getStationPathFromResult(result);
+//            System.out.println(stationPaths);
+            if (stationPaths == null || stationPaths.size() == 0) {
+                return null;
+            }
+            int minTime = -1;//存储最短时间的路线，存储最短时间
+            for (StationPath stationPath : stationPaths) {
+                if (minTime == -1) {
+                    minTime = stationPath.getTime();
+                } else if (minTime != stationPath.getTime()) {
+                    break;
+                }
+                //将每一条路线封装为一个JSONObject
+                JSONObject object = new JSONObject();
+                object.put("routename", new ArrayList<>(stationPath.getStationRelationships()));
+                object.put("stations", new ArrayList<>(stationPath.getStationList()));
+                object.put("time", stationPath.getTime());
+                object.put("length", stationPath.getLength());
+                ansJsonObjects.add(object);
+            }
+            return ansJsonObjects;
+
+        } catch (Exception e) {
+            System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
             return null;
         }
-        //使用treeset去重（将相同经过相同站点的路线去重）
-        Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
-        newSet.addAll(stationPaths);
-        List<StationPath> newList = new ArrayList<>(newSet);
-        //使用comparable接口将newList排序，将其中的len属性从小到大排序
-        Comparator<StationPath> compareLen = Comparator.comparing(StationPath::getTime);
-        Collections.sort(newList, compareLen);
-        int minTime = -1;//存储最短的路线长度，只取最短的长度
-        //将每一条路线封装为一个JSONObject
-        for (StationPath stationPath : newList) {
-            if (minTime == -1) {
-                minTime = stationPath.getTime();
-            } else if (minTime != stationPath.getTime()) {
-                break;
-            }
-            JSONObject object = new JSONObject();
-            object.put("stations", new ArrayList<>(stationPath.getStationList()));
-            object.put("time", stationPath.getTime());
-            object.put("length", stationPath.getLength());
-            ansJsonObjects.add(object);
-        }
-        return ansJsonObjects;
-
     }
 
     @Override
-    public List<JSONObject> findShortestMinTransferPathByName(String name1, String name2) {
+    public List<JSONObject> findMinTimePathByName_APOC(String name1, String name2) {
         List<JSONObject> ansJsonObjects = new ArrayList<>();
-        List<StationPath> stationPaths = findAllShortestPathByName(name1, name2);
-        if (stationPaths == null || stationPaths.size() == 0) {
+        List<StationPath> stationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"time\")yield path as path,weight as weight\n" +
+                    "with path as p, weight as sumtime\n" +
+                    "order by sumtime\n" +
+                    "return p,sumtime\n", name1, name2);
+            System.out.println("run cyper");
+            Result result = session.run(cypher);
+
+            stationPaths = Neo4jUtil.getStationPathFromResult(result);
+//            System.out.println(stationPaths);
+            if (stationPaths == null || stationPaths.size() == 0) {
+                return null;
+            }
+            int minTime = -1;//存储最短时间的路线，存储最短时间
+            for (StationPath stationPath : stationPaths) {
+                if (minTime == -1) {
+                    minTime = stationPath.getTime();
+                } else if (minTime != stationPath.getTime()) {
+                    break;
+                }
+                //将每一条路线封装为一个JSONObject
+                JSONObject object = new JSONObject();
+                object.put("routename", new ArrayList<>(stationPath.getStationRelationships()));
+                object.put("stations", new ArrayList<>(stationPath.getStationList()));
+                object.put("time", stationPath.getTime());
+                object.put("length", stationPath.getLength());
+                ansJsonObjects.add(object);
+            }
+            return ansJsonObjects;
+
+        } catch (Exception e) {
+            System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
             return null;
         }
-        //使用treeset去重（将相同经过相同站点的路线去重）
-        Set<StationPath> newSet = new TreeSet<>(Comparator.comparing(StationPath::getPathLabel));
-        newSet.addAll(stationPaths);
-        List<StationPath> newList = new ArrayList<>(newSet);
-        //使用comparable接口将newList排序，将其中的len属性从小到大排序
-        Comparator<StationPath> compareLen = Comparator.comparing(StationPath::getTransferCnt);
-        Collections.sort(newList, compareLen);
+    }
 
-        int minTransferCnt = -1;//存储最短的路线长度，只取最短的长度
-        //将每一条路线封装为一个JSONObject
-        for (StationPath stationPath : newList) {
-            if (minTransferCnt == -1) {
-                minTransferCnt = stationPath.getTransferCnt();
-            } else if (minTransferCnt != stationPath.getTransferCnt()) {
-                break;
+    @Override
+    public List<JSONObject> findMinTimePathByName_ALL(String name1, String name2) {
+        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        List<StationPath> stationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
+                    "CALL apoc.algo.allSimplePaths(n1,n2,\"vNEAR>\",10)yield path\n" +
+                    "with reduce(x=0,r in relationships(path)|x+r.time) as sumtime,path as p\n" +
+                    "order by sumtime\n" +
+                    "return p,sumtime", name1, name2);
+            Result result = session.run(cypher);
+            stationPaths = Neo4jUtil.getStationPathFromResult(result);
+            if (stationPaths == null || stationPaths.size() == 0) {
+                return null;
             }
-            JSONObject object = new JSONObject();
-            object.put("stations", new ArrayList<>(stationPath.getStationList()));
-            object.put("transferCount", stationPath.getTransferCnt());
-            object.put("length", stationPath.getLength());
-            ansJsonObjects.add(object);
+            //因为cyper返回的路线已经根据time从小到大排序，因此直接取list前面时间最少的路线
+            int minTime = -1;//存储最短时间的路线，存储最短时间
+            for (StationPath stationPath : stationPaths) {
+                if (minTime == -1) {
+                    minTime = stationPath.getTime();
+                } else if (minTime != stationPath.getTime()) {
+                    break;
+                }
+                //将每一条路线封装为一个JSONObject
+                JSONObject object = new JSONObject();
+                object.put("routename", new ArrayList<>(stationPath.getStationRelationships()));
+                object.put("stations", new ArrayList<>(stationPath.getStationList()));
+                object.put("time", stationPath.getTime());
+                object.put("length", stationPath.getLength());
+                ansJsonObjects.add(object);
+            }
+            return ansJsonObjects;
+
+        } catch (Exception e) {
+            System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
+            return null;
         }
-        return ansJsonObjects;
+    }
+
+    @Override
+    public List<JSONObject> findMinTransferPathByName(String name1, String name2) {
+        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        List<StationPath> stationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
+                    "CALL apoc.algo.allSimplePaths(n1,n2,\"vNEAR>\",10)yield path\n" +
+                    "with path as p\n" +
+                    "return p", name1, name2);
+            Result result = session.run(cypher);
+            stationPaths = Neo4jUtil.getStationPathFromResult(result);
+            if (stationPaths == null || stationPaths.size() == 0) {
+                return null;
+            }
+            //根据路径中的transferCnt排序
+            Comparator<StationPath> compareLen = Comparator.comparing(StationPath::getTransferCnt);
+            Collections.sort(stationPaths, compareLen);
+            int minTransferCnt = -1;//存储最短的换乘次数
+            //将每一条路线封装为一个JSONObject
+            for (StationPath stationPath : stationPaths) {
+                if (minTransferCnt ==-1) {
+                    minTransferCnt = stationPath.getTransferCnt();
+                } else if (minTransferCnt != stationPath.getTransferCnt()) {
+                    break;
+                }
+                //将每一条路线封装为一个JSONObject
+                JSONObject object = new JSONObject();
+                object.put("routename", new ArrayList<>(stationPath.getStationRelationships()));
+                object.put("stations", new ArrayList<>(stationPath.getStationList()));
+                object.put("transferCount", stationPath.getTransferCnt());
+                object.put("length", stationPath.getLength());
+                ansJsonObjects.add(object);
+            }
+            return ansJsonObjects;
+
+        } catch (Exception e) {
+            System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
+            return null;
+        }
     }
 }
 
