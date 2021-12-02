@@ -161,11 +161,30 @@ public interface LineService {
     /**
      * 找到最短路径中花费时间最少的路线
      *
-     * @param name1
-     * @param name2
+     * @param name1 name1
+     * @param name2 name2
      * @return {@code List<JSONObject>}
      */
-    List<JSONObject> findShortestMinTimePathByName(String name1, String name2);
+    List<JSONObject> findMinTimePathByName_REDUCE(String name1, String name2);
+
+
+    /**
+     * 找到最短路径中花费时间最少的路线
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findMinTimePathByName_APOC(String name1, String name2);
+
+    /**
+     * 找到最短路径中花费时间最少的路线
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findMinTimePathByName_ALL(String name1, String name2);
 
 
     /**
@@ -175,6 +194,6 @@ public interface LineService {
      * @param name2 name2
      * @return {@code List<JSONObject>}
      */
-    List<JSONObject> findShortestMinTransferPathByName(String name1, String name2);
+    List<JSONObject> findMinTransferPathByName(String name1, String name2);
 }
 

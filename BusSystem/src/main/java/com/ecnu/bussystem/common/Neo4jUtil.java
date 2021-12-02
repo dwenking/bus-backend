@@ -128,13 +128,13 @@ public class Neo4jUtil {
             StringBuilder thisPathString = new StringBuilder();//使用一个字符串将该路线的id使用空格间隔穿起来作为路径的标志来去重
             int sumTime=0;
             int transferCnt=0;
+            String preLineName = new String();
             for (Path.Segment p : path) {
                 Station startNode = getStationFromNode(p.start());
                 Station endNode = getStationFromNode(p.end());
                 StationRelationship stationRelationship = getStationRelationshipFromRelationship(p.relationship());
                 if (startNode == null || endNode == null || stationRelationship == null) break;
                 sumTime+=stationRelationship.getTime();
-                String preLineName="";
                 if (thisStations.size() == 0) {
                     thisStations.add(startNode);
                     thisStations.add(endNode);
@@ -142,7 +142,8 @@ public class Neo4jUtil {
                     preLineName=stationRelationship.getName();
                     thisPathString.append(startNode.getMyId()).append(" ").append(endNode.getMyId());
                 } else {
-                    if(preLineName!=stationRelationship.getName()){
+                    if(!preLineName.equals(stationRelationship.getName())){
+                        preLineName=stationRelationship.getName().toString();
                         transferCnt++;
                     }
                     thisStations.add(endNode);

@@ -86,7 +86,6 @@ public class StationServiceImpl implements StationService {
             List<Record> records = result.list();
             for (Record record : records) {
                 Value value = record.get("COLLECT(n.name)");
-                // System.out.println("value: " + value);
                 // 类型转换
                 station.setLines((List<String>) (List) value.asList());
             }
