@@ -623,7 +623,7 @@ public class LineServiceImpl implements LineService {
         List<JSONObject> ansObjectList = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
             String cypher = String.format("match((n1:vStations{myId:'%s'})),((n2:vStations{myId:'%s'}))\n" +
-                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"weight\")yield path as path,weight as weight\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR>\",\"weight\")yield path as path,weight as weight\n" +
                     "with path as p\n" +
                     "return p,length(p)", id1, id2);
             Result result = session.run(cypher);
@@ -674,7 +674,7 @@ public class LineServiceImpl implements LineService {
         List<StationPath> ansStationPaths;
         try (Session session = neo4jDriver.session()) {
             String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
-                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"weight\")yield path as path,weight as weight\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR>\",\"weight\")yield path as path,weight as weight\n" +
                     "with path as p\n" +
                     "return p,length(p)", name1, name2);
             Result result = session.run(cypher);
@@ -696,7 +696,6 @@ public class LineServiceImpl implements LineService {
                     "with p,REDUCE(x=0,r in relationships(p)|x+r.time) as sumtime\n" +
                     "order by sumtime\n" +
                     "return p,sumtime", name1, name2);
-            System.out.println("run cyper");
             Result result = session.run(cypher);
             stationPaths = Neo4jUtil.getStationPathFromResult(result);
             if (stationPaths == null || stationPaths.size() == 0) {
@@ -731,13 +730,11 @@ public class LineServiceImpl implements LineService {
         List<StationPath> stationPaths = new ArrayList<>();
         try (Session session = neo4jDriver.session()) {
             String cypher = String.format("match((n1:vStations)-[]->(m:vNames{name:'%s'})),((n2:vStations)-[]->(k:vNames{name:'%s'}))\n" +
-                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR\",\"time\")yield path as path,weight as weight\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR>\",\"time\")yield path as path,weight as weight\n" +
                     "with path as p, weight as sumtime\n" +
                     "order by sumtime\n" +
                     "return p,sumtime\n", name1, name2);
-            System.out.println("run cyper");
             Result result = session.run(cypher);
-
             stationPaths = Neo4jUtil.getStationPathFromResult(result);
 //            System.out.println(stationPaths);
             if (stationPaths == null || stationPaths.size() == 0) {
@@ -762,6 +759,45 @@ public class LineServiceImpl implements LineService {
 
         } catch (Exception e) {
             System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
+            return null;
+        }
+    }
+
+    @Override
+    public List<JSONObject> findMinTimePathById_APOC(String id1, String id2) {
+        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        List<StationPath> stationPaths = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match((n1:vStations{myId:'%s'})),((n2:vStations{myId:'%s'}))\n" +
+                    "CALL apoc.algo.dijkstra(n1,n2,\"vNEAR>\",\"time\")yield path as path,weight as weight\n" +
+                    "with path as p ,weight as weight\n" +
+                    "order by weight\n" +
+                    "return p,weight\n", id1, id2);
+            Result result = session.run(cypher);
+            stationPaths = Neo4jUtil.getStationPathFromResult(result);
+//            System.out.println(stationPaths);
+            if (stationPaths == null || stationPaths.size() == 0) {
+                return null;
+            }
+            int minTime = -1;//存储最短时间的路线，存储最短时间
+            for (StationPath stationPath : stationPaths) {
+                if (minTime == -1) {
+                    minTime = stationPath.getTime();
+                } else if (minTime != stationPath.getTime()) {
+                    break;
+                }
+                //将每一条路线封装为一个JSONObject
+                JSONObject object = new JSONObject();
+                object.put("routename", new ArrayList<>(stationPath.getStationRelationships()));
+                object.put("stations", new ArrayList<>(stationPath.getStationList()));
+                object.put("time", stationPath.getTime());
+                object.put("length", stationPath.getLength());
+                ansJsonObjects.add(object);
+            }
+            return ansJsonObjects;
+
+        } catch (Exception e) {
+            System.out.println("没有找到Record, id1:" + id1 + "->" + "id2:" + id2);
             return null;
         }
     }

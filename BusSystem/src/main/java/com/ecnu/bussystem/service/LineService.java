@@ -195,5 +195,15 @@ public interface LineService {
      * @return {@code List<JSONObject>}
      */
     List<JSONObject> findMinTransferPathByName(String name1, String name2);
+
+    /**
+     * 找到最短路径中花费时间最少的路线
+     *
+     * @param id1 id1
+     * @param id2 id2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findMinTimePathById_APOC(String id1, String id2);
+
 }
 

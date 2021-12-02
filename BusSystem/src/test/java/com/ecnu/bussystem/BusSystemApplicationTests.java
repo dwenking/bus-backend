@@ -224,8 +224,8 @@ class BusSystemApplicationTests {
 
     @Test
     void testfindShortestPathById() {
-        String id1 = "16115";
-        String id2 = "14768";
+        String id1 = "14768";
+        String id2 = "16115";
         List<JSONObject> stations = lineService.findShortestPathById(id1, id2);
         if (stations == null || stations.size() == 0) {
             System.out.println("没有找到最短路径从id1:" + id1 + "->" + "id2:" + id2);
@@ -270,11 +270,25 @@ class BusSystemApplicationTests {
     }
     @Test
     void testfindMinTimePathByName_APOC() {
-        String name1 = "大悦城";
-        String name2 = "小吃街";
+        String name1 = "红瓦寺";
+        String name2 = "动物园";
         List<JSONObject> stations = lineService.findMinTimePathByName_APOC(name1, name2);
         if (stations == null || stations.size() == 0) {
             System.out.println("没有找到最短路径从name1:" + name1 + "->" + "name2:" + name2);
+            return;
+        }
+        for (JSONObject object : stations) {
+            System.out.println(object);
+        }
+    }
+
+    @Test
+    void testfindMinTimePathById_APOC() {
+        String id1 = "14768";
+        String id2 = "16115";
+        List<JSONObject> stations = lineService.findMinTimePathById_APOC(id1, id2);
+        if (stations == null || stations.size() == 0) {
+            System.out.println("没有找到最短路径从id1:" + id1 + "->" + "id2:" + id2);
             return;
         }
         for (JSONObject object : stations) {

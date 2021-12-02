@@ -143,7 +143,7 @@ public class Neo4jUtil {
                     thisPathString.append(startNode.getMyId()).append(" ").append(endNode.getMyId());
                 } else {
                     if(!preLineName.equals(stationRelationship.getName())){
-                        preLineName=stationRelationship.getName().toString();
+                        preLineName=new String(stationRelationship.getName());
                         transferCnt++;
                     }
                     thisStations.add(endNode);
