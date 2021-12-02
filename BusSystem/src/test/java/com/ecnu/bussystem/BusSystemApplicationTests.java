@@ -232,7 +232,12 @@ class BusSystemApplicationTests {
             return;
         }
         for (JSONObject object : stations) {
+            List<Station> stationList= (List<Station>) object.get("stations");
             System.out.println(object);
+            for(Station station:stationList){
+                System.out.println(station);
+            }
+
         }
     }
 
