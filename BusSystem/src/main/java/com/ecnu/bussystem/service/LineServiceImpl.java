@@ -587,7 +587,7 @@ public class LineServiceImpl implements LineService {
         for (int i = 0; i < cnt - 1; i++) {
             String id1 = stations.get(i).getMyId();
             String id2 = stations.get(i + 1).getMyId();
-            int routes = this.findDirectPathWithDirection(id1, id2);
+            int routes = lineRepository.findDirectPathWithDirection(id1, id2);
             average += 1.0 / routes;
         }
         //求平均非重复系数并保留两位小数
@@ -596,34 +596,6 @@ public class LineServiceImpl implements LineService {
         res.put("lineName", routeName);
         res.put("number", df.format(average));
         return res;
-    }
-
-
-    public int findDirectPathWithDirection(String id1, String id2) {
-        int cnt = 0;
-        // 根据id查找途径该站点的线路
-        List<String> routesName1 = stationRepository.findLineByStationId(id1);
-        List<String> routesName2 = stationRepository.findLineByStationId(id2);
-        List<String> commonRoutes = new ArrayList<>(CollectionUtils.intersection(routesName1, routesName2));
-        for (String route : commonRoutes) {
-            StationLine stationLine = this.findStationOfLineByPreciseName(route);
-            List<Station> stationList = stationLine.getStations();
-            Integer indx1 = -1;
-            Integer indx2 = -1;
-            for (int i = 0; i < stationList.size(); i++) {
-                if (stationList.get(i).getMyId().equals(id1)) {
-                    indx1 = i;
-                }
-                if (stationList.get(i).getMyId().equals(id2)) {
-                    indx2 = i;
-                }
-            }
-            //从id1到id2，线路数加1
-            if (indx1 < indx2) {
-                cnt++;
-            }
-        }
-        return cnt;
     }
 
 
