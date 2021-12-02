@@ -232,6 +232,19 @@ public class LineController {
         return JSONResult.success(stations);
     }
 
+    @ApiOperation(value = "findMinTimePathByIdAPOC根据id求出两站之间的最少时间路线(APOC)", notes = "5.3如果有更多细节考虑(最少时间)，使用apoc的dijstra函数直接计算，考虑所有的以时间为权重的最短路径，但是根据相同权重进行去重")
+    @GetMapping(path = "/get/minTime/path/id/apoc/{id1}/{id2}")
+    public JSONResult<?> findMinTimePathByIdAPOC(
+            @PathVariable String id1,
+            @PathVariable String id2
+    ) {
+        List<JSONObject> stations = lineService.findMinTimePathById_APOC(id1, id2);
+        if (stations == null || stations.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "不存在最少用时路径");
+        }
+        return JSONResult.success(stations);
+    }
+
     @ApiOperation(value = "findAllShortestPathByName求出根据name两站之间的所有最短路径", notes = "显示所有最短路的信息")
     @GetMapping(path = "/get/shortest/all/path/name/{name1}/{name2}")
     public JSONResult<?> findAllShortestPathByName(
