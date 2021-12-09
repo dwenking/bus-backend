@@ -65,8 +65,8 @@ class BusSystemApplicationTests {
 
     @Test
     void testFindDirectPathBetweenTwoStations() {
-        String name1 = "航天立交东";
-        String name2 = "生态公园";
+        String name1 = "孵化园";
+        String name2 = "金河市政府";
        List<JSONObject> stationLines = lineService.findDirectPathNameBetweenTwoStations(name1, name2);
         if (stationLines == null || stationLines.size() == 0) {
             System.out.println("不存在直达线路");
@@ -78,7 +78,7 @@ class BusSystemApplicationTests {
     }
     @Test
     void testFindAlongStationLineByStartAndEndName() {
-        List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("画展中心", "金河客运站", "1路");
+        List<StationLine> stationLines = lineService.findAlongStationLineByStartAndEndName("大悦城", "小吃街", "10路");
         if (stationLines == null) {
             System.out.println("不存在路线");
             return;

@@ -14,11 +14,6 @@ import java.util.List;
 @NoArgsConstructor
 public class StationPath{
     /**
-     * 路径标签(使用每一个站的id用空格间隔相连）
-     */
-    private String pathLabel;
-
-    /**
      * 路线长度
      */
     private int length;

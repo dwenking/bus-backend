@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class StationRelationship {
-
     private String name;
     private int weight;
     private int time;
