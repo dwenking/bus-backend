@@ -8,11 +8,14 @@ import com.ecnu.bussystem.entity.StationLine;
 import com.ecnu.bussystem.entity.StationPath;
 import com.ecnu.bussystem.respository.LineRepository;
 import com.ecnu.bussystem.respository.StationRepository;
+import lombok.NoArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -234,118 +237,124 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<StationLine> findAlongStationLineByStartAndEndName(String name1, String name2, String routename) {
-        //首先根据线路模糊查询到每条线路沿线的站
+        List<Line> lines = this.findLineByVagueName(routename);
         List<StationLine> stationLineList = new ArrayList<>();
-        List<StationLine> stationLines = this.findStationOfLineByVagueName(routename);
-        //没有找到相关的路线，返回null
-        if (stationLines == null || stationLines.size() == 0) {
-            return null;
+        for (Line line : lines) {
+            stationLineList.addAll(this.findAlongStationLineByStartAndEndNameandPreciseRoutename(name1, name2, line.getName()));
         }
-        //遍历每条线路上的站，判断是否存在name1->name2的路线，如果有则存入stationlines中
-        for (int i = 0; i < stationLines.size(); i++) {
-            List<Station> stationList = stationLines.get(i).getStations();
-            List<Integer> indx1List = new ArrayList<>();
-            List<Integer> indx2List = new ArrayList<>();
-            //查找一条路线中从name1到name2的路线（防止有多条），直接记录下标计算
-            for (int j = 0; j < stationList.size(); j++) {
-                String thisStationName = stationList.get(j).getName();
-                if (thisStationName.equals(name1) || thisStationName.equals(name1 + "(始发站)") || thisStationName.equals(name1 + "(终点站)")) {
-                    indx1List.add(j);
-                }
-                if (thisStationName.equals(name2) || thisStationName.equals(name2 + "(始发站)") || thisStationName.equals(name2 + "(终点站)")) {
-                    indx2List.add(j);
-                }
-            }
-            //没有找到相关的站，之间continue
-            if (indx1List.size() == 0 || indx2List.size() == 0) {
-                continue;
-            }
-            //如果存在路线，则生成路线并计算时间
-            for (Integer index1 : indx1List) {
-                for (Integer index2 : indx2List) {
-                    if (index1 < index2) {
-                        String id1 = stationList.get(index1).getMyId();
-                        String id2 = stationList.get(index2).getMyId();
-                        Integer time = lineRepository.findTimebetweenTwoStations(id1, id2, stationLines.get(i).getName());
-                        List<Station> alongStations = new ArrayList<>(stationList.subList(index1, index2 + 1));
-                        stationLineList.add(new StationLine(stationLines.get(i).getName(), true, alongStations, time));
+        return stationLineList;
+    }
+
+    @Override
+    public List<StationLine> findAlongStationLineByStartAndEndNameandPreciseRoutename(String name1, String name2, String routename) {
+        List<StationLine> stationLineList = new ArrayList<>();
+
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match (k:vNames{name:'%s'})-[]-(n1:vStations),(m:vNames{name:'%s'})-[]-(n2:vStations)\n" +
+                    "match p= (n1)-[:vNEAR*..{name:'%s'}]->(n2)\n" +
+                    "with p unwind(relationships(p)) as r\n" +
+                    "return p,sum(r.time) as runtime", name1, name2, routename);
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                //每一组值代表一个路线
+                StationLine stationLine = new StationLine();
+                stationLine.setName(routename);
+                List<Station> stations = new ArrayList<>();
+                Map<String, Object> map = record.asMap();
+                //返回的是path和time
+                for (String cur : map.keySet()) {
+                    if (cur.equals("p")) {
+                        Path path = (Path) map.get(cur);
+                        for (Node node : path.nodes()) {
+                            Station station = Neo4jUtil.getStationFromNode(node);
+                            stations.add(station);
+                        }
+                        stationLine.setStations(stations);
+                    } else {
+                        Number time = (Number) map.get(cur);
+                        stationLine.setTime(time.intValue());
                     }
                 }
+                stationLineList.add(stationLine);
             }
         }
         return stationLineList;
     }
 
-
     @Override
     public List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2) {
-        //分别找出两个站name的站的集合，并已找到相关的线路，并返回在station中的lines数组中
-        List<Station> stationList1 = stationService.findLineOfStationByVagueName(name1);
-        List<Station> stationList2 = stationService.findLineOfStationByVagueName(name2);
-        if (stationList1 == null || stationList1.size() == 0 || stationList2 == null || stationList2.size() == 0) {
-            return null;
-        }
         List<JSONObject> objects = new ArrayList<>();
-        Set<String> directPathStationSet = new HashSet<>();//用来判断是否重复记录线路的集合
-        for (Station station1 : stationList1) {
-            for (Station station2 : stationList2) {
-                List<String> routename1list = station1.getLines();
-                List<String> routename2list = station2.getLines();
-                if (routename1list == null || routename1list.size() == 0 || routename2list == null || routename2list.size() == 0) {
-                    continue;
+        //考虑方向和去重
+        objects.addAll(this.findDirectPathNameBetweenTwoStationsByDirection(name1, name2));
+        objects.addAll(this.findDirectPathNameBetweenTwoStationsByDirection(name2, name1));
+        List<JSONObject> ans = new ArrayList<>();
+        Set<String> pathset = new HashSet<>();
+        for (JSONObject o : objects) {
+            JSONObject thisPath=new JSONObject();
+            String p=(String) o.get("routename") + o.get("name1")+o.get("name2");
+            if((boolean) o.get("d")==false){
+                String rp=(String) o.get("routename") + o.get("name2")+o.get("name1");
+                if(pathset.contains(p)==false && pathset.contains(rp)==false){
+                    pathset.add(p);
+                    pathset.add(rp);
+                    thisPath.put("name", (String) o.get("routename"));
+                    thisPath.put("directional", (String)o.get("name1")+"<->"+o.get("name2"));
+                    ans.add(thisPath);
                 }
-                List<String> routenameList = new ArrayList<>(CollectionUtils.intersection(routename1list, routename2list));
-                //找到两个站的线路重合的线路，并遍历这些线路，找出线路中的两个站，截取直达的线路部分（注意方向）
-                for (String routename : routenameList) {
-                    StationLine stationLine = this.findStationOfLineByPreciseName(routename);
-                    if (stationLine == null) {
-                        break;
-                    }
-                    List<Station> stationList = stationLine.getStations();
-                    if (stationList == null || stationList.size() == 0) {
-                        break;
-                    }
-                    if (!stationLine.getDirectional()) {
+            }
+            else if(pathset.contains(p)==false){
+                pathset.add(p);
+                thisPath.put("name", (String) o.get("routename"));
+                thisPath.put("directional", (String)o.get("name1")+"->"+o.get("name2"));
+                ans.add(thisPath);
+            }
+        }
+        return ans;
+    }
 
-                        if (!directPathStationSet.contains(routename + name1 + "<->" + name2 + "（环线）") && !directPathStationSet.contains(routename + name2 + "<->" + name1 + "（环线）")) {
-                            JSONObject thisPath = new JSONObject();
-                            thisPath.put("name", routename);
-                            thisPath.put("directional", name1 + "<->" + name2 + "（环线）");
-                            objects.add(thisPath);
-                            directPathStationSet.add(routename + name1 + "<->" + name2 + "（环线）");
-                            directPathStationSet.add(routename + name2 + "<->" + name1 + "（环线）");
-                        }
-                        continue;
+    @Override
+    public List<JSONObject> findDirectPathNameBetweenTwoStationsByDirection(String name1, String name2) {
+        List<JSONObject> objects = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match (s1:vStations{name:'%s'})-[r]->()\n" +
+                    "match ()-[r2]->(s2:vStations{name:'%s'})\n" +
+                    "where r.name=r2.name\n" +
+                    "with r.name as line,s1.name as name1, s2.name as name2\n" +
+                    "where exists((s1)-[:vNEAR*..{name:line}]->(s2)) \n" +
+                    "return name1,line,name2", name1, name2);
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                JSONObject thisPath = new JSONObject();
+                Map<String, Object> map = record.asMap();
+                //返回的是path和time
+                String startName = null;
+                String endName = null;
+                String thisRoutename = null;
+                for (String cur : map.keySet()) {
+                    if (cur.equals("name1")) {
+                        startName = (String) map.get(cur);
+                    } else if (cur.equals("name2")) {
+                        endName = (String) map.get(cur);
+                    } else {
+                        thisRoutename = (String) map.get(cur);
                     }
-                    //找出该线路下两个站的下标位置
-                    int indx1 = -1;
-                    int indx2 = -1;
-                    for (int i = 0; i < stationList.size(); i++) {
-                        if (stationList.get(i).getMyId().equals(station1.getMyId())) {
-                            indx1 = i;
-                        }
-                        if (stationList.get(i).getMyId().equals(station2.getMyId())) {
-                            indx2 = i;
-                        }
-                    }
-                    if (indx1 == -1 || indx2 == -1) {
-                        break;
-                    }
-
-                    if (indx1 < indx2 && !directPathStationSet.contains(routename + name1 + "->" + name2)) {
-                        JSONObject thisPath = new JSONObject();
-                        thisPath.put("name", routename);
-                        thisPath.put("directional", name1 + "->" + name2);
-                        directPathStationSet.add(routename + name1 + "->" + name2);
-                        objects.add(thisPath);
-                    } else if (indx1 > indx2 && !directPathStationSet.contains(routename + name2 + "->" + name1)) {
-                        JSONObject thisPath = new JSONObject();
-                        thisPath.put("name", routename);
-                        thisPath.put("directional", name2 + "->" + name1);
-                        directPathStationSet.add(routename + name2 + "->" + name1);
-                        objects.add(thisPath);
-                    }
-
+                }
+                //判断是否为环线
+                Line line = this.findLineByPerciseName(thisRoutename);
+                if (line.getDirectional() == false) {
+                    thisPath.put("routename", thisRoutename);
+                    thisPath.put("name1", startName);
+                    thisPath.put("name2", endName);
+                    thisPath.put("d",false);
+                    objects.add(thisPath);
+                } else {
+                    thisPath.put("routename", thisRoutename);
+                    thisPath.put("name1", startName);
+                    thisPath.put("name2", endName);
+                    thisPath.put("d",true);
+                    objects.add(thisPath);
                 }
             }
         }
@@ -354,46 +363,42 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<JSONObject> findOneWayStationsByRouteName(String name) {
+        name=name.replace("上行","");
+        name=name.replace("下行","");
+        Line line=this.findLineByPerciseName(name);
+        if(line!=null && line.getDirectional()==false)
+            return null;
         //存储这条线路上的单行站的名称
         List<JSONObject> objectList = new ArrayList<>();
-        List<Line> linelist = this.findLineByVagueName(name);
-        if (linelist == null || linelist.size() <= 1) {
-            return null;
-        }
-        Set<String> nameSet1 = new HashSet<>();
-        Set<String> nameSet2 = new HashSet<>();
-        for (int i = 0; i < linelist.size(); i++) {
-            String routeName = linelist.get(i).getName();
-            StationLine stationLine = this.findStationOfLineByPreciseName(routeName);
-            if (stationLine == null) {
-                break;
+
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("match (s:vStations)-[:vNEAR{name:'%s'}]-()\n" +
+                    "match (s1:vStations)-[:vNEAR{name:'%s'}]-() \n" +
+                    "with collect (distinct s.name) as a, collect(distinct s1.name) as b \n" +
+                    "return [x in a where not x in b] as up_single, [x in b where not x in a] as down_single\n", name+"上行", name+"下行");
+            List<String> stringList=new ArrayList<>();
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Map<String, Object> map = record.asMap();
+                for (String cur : map.keySet()) {
+                    if (cur.equals("up_single")) {
+                        List<String> strings= (List<String>) map.get(cur);
+                        stringList.addAll(strings);
+                    } else if (cur.equals("down_single")) {
+                        List<String> strings = (List<String>) map.get(cur);
+                        stringList.addAll(strings);
+                    }
+                }
             }
-            List<Station> stations = stationLine.getStations();
-            if (stations == null || stations.size() == 0) {
-                break;
+            for (String s:stringList){
+                JSONObject objects = new JSONObject();
+                objects.put("name", s);
+                objectList.add(objects);
             }
-            Set<String> stationNameSet = new HashSet<>();
-            for (int j = 0; j < stations.size(); j++) {
-                stationNameSet.add(stations.get(j).getName());
-            }
-            if (i == 0) {
-                nameSet1.addAll(stationNameSet);
-            } else {
-                nameSet2.addAll(stationNameSet);
-            }
+
         }
-        Collection<String> allStationName = CollectionUtils.union(nameSet1, nameSet2);
-        Collection<String> intersectionStationName = CollectionUtils.intersection(nameSet1, nameSet2);
-        List<String> thisRouteOneWayStations = (List<String>) CollectionUtils.subtract(allStationName, intersectionStationName);
-        if (thisRouteOneWayStations == null || thisRouteOneWayStations.size() == 0) {
-            return null;
-        }
-        for (int i = 0; i < thisRouteOneWayStations.size(); i++) {
-            JSONObject objects = new JSONObject();
-            objects.put("name", thisRouteOneWayStations.get(i));
-            objectList.add(objects);
-        }
-        return objectList;
+        return  objectList;
     }
 
     @Override

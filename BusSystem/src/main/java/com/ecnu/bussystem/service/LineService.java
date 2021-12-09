@@ -61,8 +61,7 @@ public interface LineService {
     List<JSONObject> findDuplicateStations(String lineName1, String lineName2);
 
     /**
-     * 发现在站逐开始和结束的名字
-     * 根据起始站点和公交线路名返回路线上的站（方向，站点和运行时间）
+     * 根据起始站点和模糊公交线路名返回路线上的站（方向，站点和运行时间）
      *
      * @param name1     name1
      * @param name2     name2
@@ -71,6 +70,15 @@ public interface LineService {
      */
     List<StationLine> findAlongStationLineByStartAndEndName(String name1, String name2, String routename);
 
+    /**
+     * 根据起始站点和确切公交线路名返回路线上的站（方向，站点和运行时间）
+     *
+     * @param name1     name1
+     * @param name2     name2
+     * @param routename routename
+     * @return {@code List<StationLine>}
+     */
+    List<StationLine> findAlongStationLineByStartAndEndNameandPreciseRoutename(String name1, String name2, String routename);
 
     /**
      * 找到两个站之间的直接路径名
@@ -81,6 +89,15 @@ public interface LineService {
      */
     List<JSONObject> findDirectPathNameBetweenTwoStations(String name1, String name2);
 
+
+    /**
+     * 找到两个站之间的直接路径名根据确定的方向
+     *
+     * @param name1 name1
+     * @param name2 name2
+     * @return {@code List<JSONObject>}
+     */
+    List<JSONObject> findDirectPathNameBetweenTwoStationsByDirection(String name1, String name2);
 
     /**
      * 找到所有单行站的数量，根据上下行的路线上的站进行对比

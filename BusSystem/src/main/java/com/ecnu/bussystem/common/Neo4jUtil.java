@@ -125,7 +125,6 @@ public class Neo4jUtil {
             Path path = value.asPath();
             List<Station> thisStations = new ArrayList<>();
             List<StationRelationship> thisStationRelationship = new ArrayList<>();
-            StringBuilder thisPathString = new StringBuilder();//使用一个字符串将该路线的id使用空格间隔穿起来作为路径的标志来去重
             int sumTime=0;
             int transferCnt=0;
             String preLineName = new String();
@@ -140,7 +139,6 @@ public class Neo4jUtil {
                     thisStations.add(endNode);
                     thisStationRelationship.add(stationRelationship);
                     preLineName=stationRelationship.getName();
-                    thisPathString.append(startNode.getMyId()).append(" ").append(endNode.getMyId());
                 } else {
                     if(!preLineName.equals(stationRelationship.getName())){
                         preLineName=new String(stationRelationship.getName());
@@ -148,11 +146,10 @@ public class Neo4jUtil {
                     }
                     thisStations.add(endNode);
                     thisStationRelationship.add(stationRelationship);
-                    thisPathString.append(startNode.getMyId()).append(" ").append(endNode.getMyId());
                 }
             }
-            if (thisPathString.length() != 0) {
-                stationPaths.add(new StationPath(thisPathString.toString(),thisStationRelationship.size(),sumTime,transferCnt,new ArrayList<>(thisStations),new ArrayList<>(thisStationRelationship)));
+            if (thisStationRelationship.size()!=0) {
+                stationPaths.add(new StationPath(thisStationRelationship.size(),sumTime,transferCnt,new ArrayList<>(thisStations),new ArrayList<>(thisStationRelationship)));
             }
         }
         return stationPaths;
