@@ -440,44 +440,24 @@ public class LineServiceImpl implements LineService {
     @Override
     public List<JSONObject> findTransferLines(String routeName) {
         List<JSONObject> res = new ArrayList<>();
-        Map<String, String> totalTransferLine = new HashMap<>();
-        // 先找出该routeName对应线路的所有途径站点
-        StationLine lineStation = this.findStationOfLineByPreciseName(routeName);
-        List<Station> stations = lineStation.getStations();
-        if (stations == null || stations.size() < 1) {
-            return null;
-        }
         try (Session session = neo4jDriver.session()) {
-            // 遍历所有站点的ID，和每个ID相连的线路即为可换乘线路
-            for (Station station : stations) {
-                String stationid = station.getMyId();
-                List<String> transferLineList = new ArrayList<>();
-                String cypher = String.format("match (n:vStations{myId:'%s'})-[]->(l:vLines) " +
-                        "with l.name as transferLine return distinct transferLine", stationid);
-                Result result = session.run(cypher);
-                List<Record> records = result.list();
-                for (Record record : records) {
-                    Map<String, Object> map = record.asMap();
-                    // 要去掉routeName自身
-                    if (!map.get("transferLine").equals(routeName)) {
-                        transferLineList.add(map.get("transferLine").toString());
-                        totalTransferLine.put(map.get("transferLine").toString(), "0");
-                    }
+            String cypher = String.format("match ()-[r:vNEAR]-(n:vStations)-[r2:vNEAR{name:'%s'}]-() " +
+                    "where r.name<>r2.name return n.name as TransferStation, n.myId as TransferStationID," +
+                    "collect(DISTINCT r.name) as TransferLines", routeName);
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Map<String, Object> map = record.asMap();
+                JSONObject resLine = new JSONObject();
+                for (String cur : map.keySet()) {
+                    resLine.put(cur, map.get(cur));
                 }
-                if (transferLineList.size() != 0) {
-                    JSONObject resLine = new JSONObject();
-                    resLine.put("TransferStation", stationRepository.findStationById(stationid).getName());
-                    resLine.put("TransferStationID", stationid);
-                    resLine.put("TransferLines", transferLineList);
-                    res.add(resLine);
-                }
+                res.add(resLine);
             }
         }
-        JSONObject resLine = new JSONObject();
-        resLine.put("TotalTransLineNumber", totalTransferLine.size());
-        res.add(resLine);
         return res;
     }
+
 
     @Override
     public JSONObject deleteLineByPerciseName(String name) {
