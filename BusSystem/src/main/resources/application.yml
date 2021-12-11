@@ -1,13 +1,16 @@
 spring:
   data:
     mongodb:
-      #uri: mongodb://root:123456@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false # 开启了用户验证
-      uri: mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false
+
+      uri: mongodb://root:123456@localhost:27017/?authSource=admin&readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false # 开启了用户验证
+
+      # uri: mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false
       database: bussystem
 
   neo4j:
     authentication:
-      password: xochitlqx77
+
+      password: 20010605
       username: neo4j
     uri: bolt://localhost:7687
 

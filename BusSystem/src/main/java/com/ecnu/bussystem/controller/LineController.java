@@ -268,7 +268,7 @@ public class LineController {
                     tmp+="["+stationPath.getStationList().get(i).getName()+"]";
                 }
             }
-            tmp+=" time: "+stationPath.getTime()+" transferCnt: "+stationPath.getTransferCnt();
+            tmp+=" time: "+stationPath.getTime()+" transferCnt: "+stationPath.getTransferCnt()+" length: "+stationPath.getLength();
             routes.add(tmp);
         }
 
