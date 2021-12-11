@@ -605,11 +605,11 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             //根据线路基本信息创建vLine节点
             String cypher = String.format("CREATE (n:vLines \n" +
-                            "{name:'%s', directional:'%s',kilometer:'%s'," +
-                            "lineNumber:'%s', onewayTime:'%s', route:'%s'," +
-                            "runTime:'%s', type:'%s',interval:'%s'})\n" +
+                            "{name:'%s', directional:%b,kilometer:%.1f," +
+                            "lineNumber:'%s', onewayTime:%d, route:'%s'," +
+                            "runTime:'%s', type:'C',interval:%d})\n" +
                             "return n", line.getName(), line.getDirectional(), line.getKilometer(), line.getLineNumber(),
-                    line.getOnewayTime(), line.getRoute(), line.getRuntime(), line.getType(), line.getInterval());
+                    line.getOnewayTime(), line.getRoute(), line.getRuntime(), line.getInterval());
             Result result = session.run(cypher);
         }
         res.put("line", line);

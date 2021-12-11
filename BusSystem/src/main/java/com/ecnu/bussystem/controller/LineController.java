@@ -144,6 +144,7 @@ public class LineController {
 
 
     //添加一条新的线路
+    @ResponseBody
     @RequestMapping(value = "/addNewLine", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
     public JSONResult<?> addNewLine(@RequestBody Line line){
         JSONObject ans = lineService.createNewLine(line);
