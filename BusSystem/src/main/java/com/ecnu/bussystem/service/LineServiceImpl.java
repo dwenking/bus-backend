@@ -866,5 +866,30 @@ public class LineServiceImpl implements LineService {
             return null;
         }
     }
+
+    //返回所有线路
+    @Override
+    public List<JSONObject> findAllLines(){
+        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("MATCH (n:vLines) with n.name as name RETURN name");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Map<String, Object> map = record.asMap();
+                JSONObject resline = new JSONObject();
+                for (String cur : map.keySet()) {
+                    if (cur.equals("name")) {
+                        resline.put("name", map.get(cur));
+                    }
+                }
+                ansJsonObjects.add(resline);
+            }
+            return ansJsonObjects;
+        }catch (Exception e) {
+            System.out.println("没有找到线路");
+            return null;
+        }
+    }
 }
 

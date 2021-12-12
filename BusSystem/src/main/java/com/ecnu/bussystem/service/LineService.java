@@ -33,6 +33,9 @@ public interface LineService {
      * @param routeName 路线名称
      * @return {@code StationLine}
      */
+
+
+
     StationLine findStationOfLineByPreciseName(String routeName);
 
     /**
@@ -221,6 +224,14 @@ public interface LineService {
      * @return {@code List<JSONObject>}
      */
     List<JSONObject> findMinTimePathById_APOC(String id1, String id2);
+
+    /**
+     * 返回所有的线路
+     * @return {@code StationLine}
+     */
+    List<JSONObject> findAllLines();
+
+
 
 }
 

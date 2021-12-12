@@ -322,5 +322,12 @@ class BusSystemApplicationTests {
             System.out.println(object);
         }
     }
+    @Test
+    void findAllLines(){
+        List<JSONObject> lines = lineService.findAllLines();
+        for (JSONObject object : lines) {
+            System.out.println(object);
+        }
+    }
 
 }
