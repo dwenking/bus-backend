@@ -238,11 +238,12 @@ public class StationServiceImpl implements StationService {
             // 根据站点名称创建vStation节点
             for (int i=1;i<stationList.size();i++){
                 String cypher = String.format("CREATE (n:vStations \n" +
-                        "{name:'%s', englishname:'default',myId:'default'," +
+                        "{name:'%s', englishname:'default',myId:'%s'," +
                         "type:'normal'})\n" +
-                        "return n",stationList.get(i).getName());
+                        "return n",stationList.get(i).getName(),stationList.get(i).getMyId());
                 Result result = session.run(cypher);
             }
+
             // 对首尾vStation节点添加线路关系
             String cypher = String.format("MATCH(a:vLines),(b:vStations)" +
                     " WHERE a.name='%s' AND b.name='%s' " +
@@ -271,6 +272,17 @@ public class StationServiceImpl implements StationService {
                         stationList.get(i).getName(),stationList.get(i+1).getName(),lineName);
 
                 result = session.run(cypher);
+            }
+            // 根据站点名称创建vName节点和关系
+            for (int i=1;i<stationList.size();i++){
+                 cypher = String.format("CREATE (n:vNames \n" +
+                        "{name:'%s'})\n" +
+                        "return n",stationList.get(i).getName());
+                 result = session.run(cypher);
+                 cypher = String.format("MATCH(a:vNames),(b:vStations)" +
+                        " WHERE a.name='%s' AND b.name='%s' " +
+                        "CREATE (b)-[r:in]->(a) return r",stationList.get(i).getName(),stationList.get(i).getName());
+                 result = session.run(cypher);
             }
 
             res.put("stationList",stationList);

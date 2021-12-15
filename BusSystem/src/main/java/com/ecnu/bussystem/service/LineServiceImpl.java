@@ -590,11 +590,11 @@ public class LineServiceImpl implements LineService {
         try (Session session = neo4jDriver.session()) {
             //根据线路基本信息创建vLine节点
             String cypher = String.format("CREATE (n:vLines \n" +
-                            "{name:'%s', directional:'%s',kilometer:'%s'," +
-                            "lineNumber:'%s', onewayTime:'%s', route:'%s'," +
-                            "runTime:'%s', type:'%s',interval:'%s'})\n" +
+                            "{name:'%s', directional:%b,kilometer:%.1f," +
+                            "lineNumber:'%s', onewayTime:%d, route:'%s'," +
+                            "runTime:'%s', type:'C',interval:%d})\n" +
                             "return n", line.getName(), line.getDirectional(), line.getKilometer(), line.getLineNumber(),
-                    line.getOnewayTime(), line.getRoute(), line.getRuntime(), line.getType(), line.getInterval());
+                    line.getOnewayTime(), line.getRoute(), line.getRuntime(), line.getInterval());
             Result result = session.run(cypher);
         }
         res.put("line", line);
@@ -863,6 +863,31 @@ public class LineServiceImpl implements LineService {
 
         } catch (Exception e) {
             System.out.println("没有找到Record, name1:" + name1 + "->" + "name2:" + name2);
+            return null;
+        }
+    }
+
+    //返回所有线路
+    @Override
+    public List<JSONObject> findAllLines(){
+        List<JSONObject> ansJsonObjects = new ArrayList<>();
+        try (Session session = neo4jDriver.session()) {
+            String cypher = String.format("MATCH (n:vLines) with n.name as name RETURN name");
+            Result result = session.run(cypher);
+            List<Record> records = result.list();
+            for (Record record : records) {
+                Map<String, Object> map = record.asMap();
+                JSONObject resline = new JSONObject();
+                for (String cur : map.keySet()) {
+                    if (cur.equals("name")) {
+                        resline.put("name", map.get(cur));
+                    }
+                }
+                ansJsonObjects.add(resline);
+            }
+            return ansJsonObjects;
+        }catch (Exception e) {
+            System.out.println("没有找到线路");
             return null;
         }
     }

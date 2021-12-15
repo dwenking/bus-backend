@@ -144,6 +144,7 @@ public class LineController {
 
 
     //添加一条新的线路
+    @ResponseBody
     @RequestMapping(value = "/addNewLine", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
     public JSONResult<?> addNewLine(@RequestBody Line line){
         JSONObject ans = lineService.createNewLine(line);
@@ -273,4 +274,15 @@ public class LineController {
 
         return JSONResult.success(routes);
     }
+
+    @ApiOperation(value = "findAllLines找出所有路线", notes = "显示所有路线的名字")
+    @GetMapping(path = "/find/all/lines")
+    public JSONResult<?> findAllLines(){
+        List<JSONObject> lines = lineService.findAllLines();
+        if (lines == null || lines.size() == 0) {
+            return JSONResult.error(JSONResult.NO_DATA_ERROR, "没有路线");
+        }
+        return JSONResult.success(lines);
+    }
+
 }

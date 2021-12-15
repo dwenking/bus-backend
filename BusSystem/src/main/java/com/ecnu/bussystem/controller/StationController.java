@@ -108,6 +108,7 @@ public class StationController {
         return JSONResult.success(stringList);
     }
 
+    @ResponseBody
     //添加一条新的线路
     @RequestMapping(value = "/addNewStations", method = RequestMethod.POST, consumes = "application/json; charset=utf-8")
     public JSONResult<?> addNewStations(@RequestBody List<Station> stationList){
