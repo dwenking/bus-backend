@@ -248,7 +248,6 @@ public class TimetableServiceImpl implements TimetableService {
                 List<Timetable> timetables = new ArrayList<>();
                 timetables.add(timetable);
                 stationTimetable.setTimetables(timetables);
-
                 stationTimetables.add(stationTimetable);
             }
             // 存在这个站，则从stationTimetables里取出这个站进行更新
@@ -260,6 +259,26 @@ public class TimetableServiceImpl implements TimetableService {
                 stationTimetable.setTimetables(timetables);
             }
         }
+
+
+
+        for (StationTimetable tmp : stationTimetables){
+            List<Timetable> tmpRes = new ArrayList<>();
+            Iterator<Timetable> iterator = tmp.getTimetables().iterator();
+            while(iterator.hasNext()) {
+                Timetable i = iterator.next();
+                if (i.getPassTime().compareTo("00:00") >= 0 && i.getPassTime().compareTo("04:30") <= 0) {
+                    System.out.println(i.getPassTime());
+                    tmpRes.add(i);
+                    iterator.remove();
+                }
+                else {
+                    break;
+                }
+            }
+            tmp.getTimetables().addAll(tmpRes);
+        }
+
 
         // station之间的顺序还没有确定
         StationLine stationLine = lineService.findStationOfLineByPreciseName(lineName);
