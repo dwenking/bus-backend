@@ -197,7 +197,13 @@ public class TimetableServiceImpl implements TimetableService {
 
                 String passTime = timetable.getPassTime();
                 Date tmp = formatter.parse(passTime);
-                int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
+                int minutes = 0;
+                if (tmp.getTime() > date.getTime()) {
+                    minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
+                }
+                else {
+                    minutes = (int) (tmp.getTime() + 24 * 60 * 1000 * 60 - date.getTime()) / 60 / 1000;
+                }
                 timetable.setMinutes(minutes);
             }
 
