@@ -57,6 +57,15 @@ public class TimetableServiceImpl implements TimetableService {
 
         List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
         if (find == null || find.size() == 0) {
+            query = new Query();
+            query.addCriteria(Criteria.where("stationID").is(stationId));
+            query.addCriteria(Criteria.where("routeName").is(lineName));
+            query.addCriteria(Criteria.where("passTime").gte(time));
+            query.limit(Integer.parseInt(count));
+            find = mongoTemplate.find(query, Timetable.class, "timetable");
+        }
+
+        if (find == null || find.size() == 0) {
             return null;
         }
 
@@ -148,10 +157,19 @@ public class TimetableServiceImpl implements TimetableService {
             Date date = formatter.parse(time);
             String time1 = formatter.format(new Date(date.getTime() + (long) range * 60 * 1000));
 
+            System.out.println(time1);
+
             Query query = new Query();
             query.addCriteria(Criteria.where("stationID").is(stationId));
-            query.addCriteria(Criteria.where("passTime").gte(time).lte(time1));
-            query.with(Sort.by(Sort.Direction.ASC, "passTime"));
+
+            if (time.compareTo(time1) < 0) {
+                query.addCriteria(Criteria.where("passTime").gte(time).lte(time1));
+                query.with(Sort.by(Sort.Direction.ASC, "passTime"));
+            }
+            else {
+                Criteria cr = new Criteria();
+                query.addCriteria(cr.orOperator(Criteria.where("passTime").gte("00:00").lte(time1), Criteria.where("passTime").gte(time).lte("23:59")));
+            }
 
             List<Timetable> find = mongoTemplate.find(query, Timetable.class, "timetable");
             if (find == null || find.size() == 0) {
@@ -179,7 +197,13 @@ public class TimetableServiceImpl implements TimetableService {
 
                 String passTime = timetable.getPassTime();
                 Date tmp = formatter.parse(passTime);
-                int minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
+                int minutes = 0;
+                if (tmp.getTime() > date.getTime()) {
+                    minutes = (int) (tmp.getTime() - date.getTime()) / 60 / 1000;
+                }
+                else {
+                    minutes = (int) (tmp.getTime() + 24 * 60 * 1000 * 60 - date.getTime()) / 60 / 1000;
+                }
                 timetable.setMinutes(minutes);
             }
 
